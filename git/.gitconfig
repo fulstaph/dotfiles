@@ -1,0 +1,22 @@
+[user]
+	email = "fulstaph@gmail.com"
+	name = George Kvaratskhelia
+
+[url "ssh://git@gitlab.tel.yadro.com/"]
+  insteadOf = https://gitlab.tel.yadro.com/
+
+[includeIf "gitdir:~/coding/work/yadro/"]
+  path = ~/.gitconfig_yadro
+
+[core]
+	editor = nvim
+
+[alias]
+  co = checkout
+  br = branch
+  cm = commit
+  st = status
+  unstage = reset HEAD --
+
+[init]
+	defaultBranch = main
