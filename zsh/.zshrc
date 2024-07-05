@@ -8,4 +8,6 @@ eval "$(starship init zsh)"
 
 . "$HOME/.cargo/env"
 
+source ~/.xinitrc
+
 [ -f "/home/fulstaph/.ghcup/env" ] && . "/home/fulstaph/.ghcup/env" # ghcup-env
