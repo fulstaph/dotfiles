@@ -24,14 +24,57 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from libqtile import bar, layout, qtile, widget
+from enum import Enum
+from libqtile import bar, layout, qtile, widget, hook
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
 
+import os, subprocess, socket
+
+DEFAULT_TOP_BAR_SIZE = 24
+NUM_GROUPS = 8
+
 mod = "mod4"
 terminal = "wezterm" 
 browser = "firefox-developer-edition"
+
+class Host(Enum):
+    DESKTOP = "homepc"
+    LAPTOP = "thinkpad"
+
+home = os.path.expanduser('~')
+host = socket.gethostname()
+
+print(host)
+
+host = Host(host)
+
+print(host)
+    
+match host:
+    case Host.LAPTOP:
+        topbar_size = DEFAULT_TOP_BAR_SIZE
+    case Host.DESKTOP:
+        topbar_size = 35
+    case _:
+        topbar_size = DEFAULT_TOP_BAR_SIZE
+
+
+print(topbar_size)
+
+
+# @hook.subscribe.startup_once
+# def setup_monitors():
+#     if host == Host.DESKTOP.value:
+#         subprocess.call([home + '/dotfiles/scripts/dual_monitor_setup.sh'])
+
+
+@hook.subscribe.startup_once
+def autostart():
+    home = os.path.expanduser('~')
+    subprocess.call([home + '/.xinitrc'])
+
 
 keys = [
     # A list of available commands that can be bound to keys can be found
@@ -98,7 +141,6 @@ for vt in range(1, 8):
 
 
 groups = [Group(i) for i in "123456789"]
-cmd
 for i in groups:
     keys.extend(
         [
@@ -123,8 +165,16 @@ for i in groups:
         ]
     )
 
+border_colour_focus = '#c980d2' # very light purple or smth idk
+border_colour_normal = '#2e3440' # dark grey
+
 layouts = [
-    layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=4),
+    layout.Columns(
+        # border_focus_stack=["#d75f5f", "#8f3d3d"], 
+        border_focus = border_colour_focus,
+        border_normal = border_colour_normal,
+        border_width=2,
+    ),
     layout.Max(),
     # Try more layouts by unleashing below layouts.
     # layout.Stack(num_stacks=2),
@@ -146,6 +196,7 @@ widget_defaults = dict(
 )
 extension_defaults = widget_defaults.copy()
 
+print(topbar_size)
 screens = [
     Screen(
         top=bar.Bar(
@@ -160,7 +211,32 @@ screens = [
                     },
                     name_transform=lambda name: name.upper(),
                 ),
-                widget.TextBox("default config", name="default"),
+                widget.CPUGraph(
+                    border_color='ff0000',
+                    fill_color='00ff00',
+                    graph_color='0000ff',
+                    border_width=1,
+                    line_width=1,
+                    core='all',
+                ),
+                widget.CPU(
+                    format='CPU: {load_percent}%',
+                    update_interval=1,
+                ),
+                widget.Memory(
+                    format='RAM: {MemUsed:.0f}{mm}/{MemTotal:.0f}{mm}',
+                    update_interval=1,
+                    measure_mem='G',
+                ),
+                widget.Volume(
+                    fmt='Vol: {}',
+                    update_interval=0.1,
+                    volume_app='pavecontrol',
+                ),
+                widget.KeyboardLayout(
+                    configured_keyboards=['us', 'au', 'ru'],
+                    update_interval=1,
+                ),
                 widget.TextBox("Press &lt;M-r&gt; to spawn", foreground="#d75f5f"),
                 # NB Systray is incompatible with Wayland, consider using StatusNotifier instead
                 # widget.StatusNotifier(),
@@ -168,7 +244,7 @@ screens = [
                 widget.Clock(format="%Y-%m-%d %a %I:%M %p"),
                 widget.QuickExit(),
             ],
-            24,
+            topbar_size,
             # border_width=[2, 0, 2, 0],  # Draw top and bottom borders
             # border_color=["ff00ff", "000000", "ff00ff", "000000"]  # Borders are magenta
         ),
@@ -187,10 +263,28 @@ screens = [
                 widget.Clock(format="%Y-%m-%d %a %I:%M %p"),
                 widget.QuickExit(),
             ],
-            24,
-      ),
-  )
-]
+            topbar_size,
+        ),
+    ),
+    ]
+
+# use two monitors in the desktop config
+if host == Host.DESKTOP:
+    screens = screens + [(
+        Screen(
+                top=bar.Bar(
+                    [
+                        widget.CurrentLayout(),
+                        widget.GroupBox(),
+                        widget.WindowName(),
+                        widget.TextBox("Screen 2", name="screen2"),
+                        widget.Clock(format="%Y-%m-%d %a %I:%M %p"),
+                        widget.QuickExit(),
+                    ],
+                    topbar_size,
+              ),
+          ),
+    )]
 
 # Drag floating layouts.
 mouse = [
