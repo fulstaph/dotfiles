@@ -1,0 +1,2 @@
+rm -rf nushell/.config/nushell/history.txt
+git rebase --continue
