@@ -234,7 +234,7 @@ screens = [
                     volume_app='pavecontrol',
                 ),
                 widget.KeyboardLayout(
-                    configured_keyboards=['us', 'au', 'ru'],
+                    configured_keyboards=['au', 'ru'],
                     update_interval=1,
                 ),
                 # NB Systray is incompatible with Wayland, consider using StatusNotifier instead

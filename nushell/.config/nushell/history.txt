@@ -1,0 +1,3 @@
+git pull
+git st
+git rm -rf --cached .
