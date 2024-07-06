@@ -1,6 +1,14 @@
+<<<<<<< HEAD
 tmux/.config/tmux/plugins
 tmux/.tmux
 ./nushell/.config/nushell/history.txt
 nvim/.config/nvim/lazy-lock.json
 qtile/.config/qtile/__pycache__
+=======
+./tmux/.config/tmux/plugins
+./tmux/.tmux
+./nushell/.config/nushell/history.txt
+./nvim/.config/nvim/lazy-lock.json
+./qtile/.config/qtile/__pycache__
+>>>>>>> bb116203 (update .gitignore)
 
