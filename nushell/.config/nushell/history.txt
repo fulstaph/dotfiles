@@ -1,4 +1,0 @@
-exit
-ls
-ls -la
-nu --help
