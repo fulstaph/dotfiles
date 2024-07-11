@@ -33,7 +33,7 @@ from libqtile.utils import guess_terminal
 import os, subprocess, socket
 
 DEFAULT_TOP_BAR_SIZE = 24
-NUM_GROUPS = 8
+NUM_GROUPS = 9
 
 mod = "mod4"
 terminal = "wezterm" 
@@ -46,11 +46,7 @@ class Host(Enum):
 home = os.path.expanduser('~')
 host = socket.gethostname()
 
-print(host)
-
 host = Host(host)
-
-print(host)
     
 match host:
     case Host.LAPTOP:
@@ -60,8 +56,6 @@ match host:
     case _:
         topbar_size = DEFAULT_TOP_BAR_SIZE
 
-
-print(topbar_size)
 
 
 # @hook.subscribe.startup_once
@@ -73,7 +67,7 @@ print(topbar_size)
 @hook.subscribe.startup_once
 def autostart():
     home = os.path.expanduser('~')
-    subprocess.call([home + '/.xinitrc'])
+    subprocess.call([home + '/.config/qtile/autostart.sh'])
 
 
 keys = [
@@ -124,7 +118,10 @@ keys = [
     Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
     Key([mod], "space", lazy.spawn("rofi -show drun"), desc="Run rofi prompt"),
+    Key([mod, "mod1"], "l", lazy.spawn("betterlockscreen -l"), desc="Lock the screen"),
 ]
+
+print(qtile.core.name)
 
 # Add key bindings to switch VTs in Wayland.
 # We can't check qtile.core.name in default config as it is loaded before qtile is started
@@ -231,7 +228,8 @@ screens = [
                 widget.Volume(
                     fmt='Vol: {}',
                     update_interval=0.1,
-                    volume_app='pavecontrol',
+                    volume_app='pwvucontrol',
+                    # emoji=True,
                 ),
                 widget.KeyboardLayout(
                     configured_keyboards=['au', 'ru'],
