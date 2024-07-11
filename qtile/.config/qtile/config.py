@@ -235,6 +235,17 @@ screens = [
                     configured_keyboards=['au', 'ru'],
                     update_interval=1,
                 ),
+                widget.Battery(
+                    format='{char} {percent:2.0%} {hour:d}:{min:02d}',
+                    update_interval=10,
+                    charge_char='+',
+                    discharge_char='-',
+                    empty_char='x',
+                    full_char='=',
+                    unknown_char='?',
+                    low_percentage=0.2,
+                    low_foreground='FF0000',
+                ),
                 # NB Systray is incompatible with Wayland, consider using StatusNotifier instead
                 # widget.StatusNotifier(),
                 widget.Systray(),
