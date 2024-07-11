@@ -198,6 +198,7 @@ screens = [
     Screen(
         top=bar.Bar(
             [
+                widget.CurrentLayoutIcon(),
                 widget.CurrentLayout(),
                 widget.GroupBox(),
                 widget.Prompt(),
