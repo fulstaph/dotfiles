@@ -161,8 +161,7 @@ for i in groups:
             #     desc="move focused window to group {}".format(i.name)),
         ]
     )
-
-border_colour_focus = '#c980d2' # very light purple or smth idk
+border_colour_focus = '#c980d2' # very light purple or smth idk border_colour_normal = '#2e3440' # dark grey
 border_colour_normal = '#2e3440' # dark grey
 
 layouts = [
@@ -208,6 +207,9 @@ screens = [
                         "launch": ("#ff0000", "#ffffff"),
                     },
                     name_transform=lambda name: name.upper(),
+                ),
+                widget.Cmus(
+                    play_color='#800080'
                 ),
                 widget.CPUGraph(
                     border_color='ff0000',
@@ -279,24 +281,6 @@ screens = [
         ),
     ),
     ]
-
-# use two monitors in the desktop config
-if host == Host.DESKTOP:
-    screens = screens + [(
-        Screen(
-                top=bar.Bar(
-                    [
-                        widget.CurrentLayout(),
-                        widget.GroupBox(),
-                        widget.WindowName(),
-                        widget.TextBox("Screen 2", name="screen2"),
-                        widget.Clock(format="%Y-%m-%d %a %I:%M %p"),
-                        widget.QuickExit(),
-                    ],
-                    topbar_size,
-              ),
-          ),
-    )]
 
 # Drag floating layouts.
 mouse = [
