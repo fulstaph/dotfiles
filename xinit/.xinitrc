@@ -20,4 +20,5 @@ feh --bg-scale ~/dotfiles/wallpaper/3840x2160.jpg
 nm-applet & # Network Manager applet
 picom & # Compositor for transparency
 pwvucontrol & # Audio manager app
+xmobar &
 

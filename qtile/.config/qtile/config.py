@@ -26,7 +26,7 @@
 
 from enum import Enum
 from libqtile import bar, layout, qtile, widget, hook
-from libqtile.config import Click, Drag, Group, Key, Match, Screen
+from libqtile.config import Click, Drag, Group, Key, KeyChord, Match, Screen
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
 
@@ -91,7 +91,7 @@ keys = [
     Key([mod, "control"], "l", lazy.layout.grow_right(), desc="Grow window to the right"),
     Key([mod, "control"], "j", lazy.layout.grow_down(), desc="Grow window down"),
     Key([mod, "control"], "k", lazy.layout.grow_up(), desc="Grow window up"),
-    Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
+    Key([mod, "shift"], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
     # Unsplit = 1 window displayed, like Max layout, but still with
@@ -102,6 +102,8 @@ keys = [
         lazy.layout.toggle_split(),
         desc="Toggle between split and unsplit sides of stack",
     ),
+    Key([mod], "n", lazy.layout.next(), desc="Focus next stack"),
+    Key([mod], "p", lazy.layout.client_to_next(), desc="Move client to next stack"),
     Key([mod], "Return", lazy.spawn(terminal), desc="Launch terminal"),
     Key([mod], "b", lazy.spawn(browser), desc="Launch browser"),
     # Toggle between different layouts as defined below
@@ -118,10 +120,19 @@ keys = [
     Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
     Key([mod], "space", lazy.spawn("rofi -show drun"), desc="Run rofi prompt"),
+    Key([mod], "e", lazy.spawn("rofi -show emoji"), desc="Run rofi emoji picker"),
+    Key([mod], "c", lazy.spawn("rofi -show calc -no-show-match -no-sort"), desc="Run rofi calculator script"),
+    Key([mod], "q", lazy.spawn("rofi -show power-menu -modi power-menu:rofi-power-menu"), desc="Run rofi power menu script"),
     Key([mod, "mod1"], "l", lazy.spawn("betterlockscreen -l"), desc="Lock the screen"),
-]
 
-print(qtile.core.name)
+    # Set up function keys on Thinkpad
+    Key([], "F1", lazy.spawn("pulsemixer --toggle-mute")),
+    Key([], "F2", lazy.spawn("pulsemixer --change-volume -5")),
+    Key([], "F3", lazy.spawn("pulsemixer --change-volume +5")),
+    # F4 should theoretically mute the onboard mic...
+    Key([], "F5", lazy.spawn("brightnessctl set -5%")),
+    Key([], "F6", lazy.spawn("brightnessctl set +5%")),
+]
 
 # Add key bindings to switch VTs in Wayland.
 # We can't check qtile.core.name in default config as it is loaded before qtile is started
@@ -161,6 +172,7 @@ for i in groups:
             #     desc="move focused window to group {}".format(i.name)),
         ]
     )
+
 border_colour_focus = '#c980d2' # very light purple or smth idk border_colour_normal = '#2e3440' # dark grey
 border_colour_normal = '#2e3440' # dark grey
 
@@ -173,7 +185,7 @@ layouts = [
     ),
     layout.Max(),
     # Try more layouts by unleashing below layouts.
-    # layout.Stack(num_stacks=2),
+    layout.Stack(num_stacks=2),
     # layout.Bsp(),
     # layout.Matrix(),
     # layout.MonadTall(),
@@ -231,7 +243,7 @@ screens = [
                 widget.Volume(
                     fmt='Vol: {}',
                     update_interval=0.1,
-                    volume_app='pwvucontrol',
+                    volume_app='pavucontrol',
                     # emoji=True,
                 ),
                 widget.KeyboardLayout(
@@ -299,6 +311,7 @@ floating_layout = layout.Floating(
     float_rules=[
         # Run the utility of `xprop` to see the wm class and name of an X client.
         *layout.Floating.default_float_rules,
+        Match(wm_class="dialog"),  # dialog
         Match(wm_class="confirmreset"),  # gitk
         Match(wm_class="makebranch"),  # gitk
         Match(wm_class="maketag"),  # gitk

@@ -2,15 +2,6 @@
 	email = "fulstaph@gmail.com"
 	name = George Kvaratskhelia
 
-[url "git@github.com:"]
-    insteadOf = https://github.com/
-
-[url "ssh://git@gitlab.tel.yadro.com/"]
-  insteadOf = https://gitlab.tel.yadro.com/
-
-[includeIf "gitdir:~/coding/work/yadro/"]
-  path = ~/.gitconfig_yadro
-
 [core]
 	editor = nvim
 
