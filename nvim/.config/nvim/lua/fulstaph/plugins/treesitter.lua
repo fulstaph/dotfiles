@@ -20,9 +20,6 @@ return { -- Highlight, edit, and navigate code
 			"rust",
 			"python",
 			"markdown",
-			"mdx",
-			"bibtex",
-			"latex",
 		},
 		-- Autoinstall languages that are not installed
 		auto_install = true,
