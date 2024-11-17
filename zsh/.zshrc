@@ -93,4 +93,5 @@ eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(starship init zsh)"
 
+
 [ -f "/home/fulstaph/.ghcup/env" ] && . "/home/fulstaph/.ghcup/env" # ghcup-env
