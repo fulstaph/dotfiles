@@ -14,16 +14,17 @@ if [ "$(hostname)" = "thinkpad" ]; then
     xrandr --output eDP --set TearFree on
 fi
 
-stalonetray & # Icon tray for Xmobar
+stalonetray -c ~/dotfiles/xmonad/.stalonetrayrc & # Icon tray for Xmobar
 picom & # Compositor for transparency
-xmobar &
+# Enable screen autolocking after 12 minutes of inactivity
+xautolock -time 12 -locker "betterlockscreen -l" -detectsleep &
+# xmobar &
 
 # Set Wallpaper
 feh --bg-scale ~/dotfiles/wallpaper/3840x2160.jpg
 
 if [ -x /usr/bin/nm-applet ]; then 
     nm-applet --sm-disable & # Network Manager applet
-    
 fi
 
 pwvucontrol & # Audio manager app

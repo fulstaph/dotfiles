@@ -6,6 +6,9 @@ alias vim='nvim'
 alias vi='helix'
 
 export PATH="$HOME/.cabal/bin:$PATH"
+export PATH="$HOME/.ghcup/bin:$PATH"
+
+[ -f "/home/fulstaph/.ghcup/env" ] && . "/home/fulstaph/.ghcup/env" # ghcup-env
 
 # Set the directory we want to store zinit and plugins
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
@@ -94,4 +97,3 @@ eval "$(zoxide init --cmd cd zsh)"
 eval "$(starship init zsh)"
 
 
-[ -f "/home/fulstaph/.ghcup/env" ] && . "/home/fulstaph/.ghcup/env" # ghcup-env

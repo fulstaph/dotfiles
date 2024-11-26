@@ -3,14 +3,20 @@
 	name = George Kvaratskhelia
 
 [core]
-	editor = nvim
+    editor = nvim
 
 [alias]
-  co = checkout
-  br = branch
-  cm = commit
-  st = status
-  unstage = reset HEAD --
+    co = checkout
+    br = branch
+    cm = commit
+    st = status
+    unstage = reset HEAD --
 
 [init]
 	defaultBranch = main
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential

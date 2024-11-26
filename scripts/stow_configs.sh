@@ -9,9 +9,9 @@ for die in "$BASE_DIR"/*/; do
 	if [[ -d "$dir" ]]; then
 		# Get only the directory name without slashes
 		config_name=$(basename "$dir")
-		echo "Stowing $config..."
+		echo "Stowing $config_name..."
 
-		stow "$config" -d "$BASE_DIR" -t "$HOME"
+		stow "$config_name" -d "$BASE_DIR" -t "$HOME"
 	fi
 done
 
