@@ -38,5 +38,12 @@ link "$DOTFILES/starship/starship.toml" "$HOME/.config/starship.toml"
 echo "==> ghostty"
 link "$DOTFILES/ghostty/config.ghostty" "$HOME/.config/ghostty/config.ghostty"
 
+echo "==> zellij"
+link "$DOTFILES/zellij/config.kdl"          "$HOME/.config/zellij/config.kdl"
+link "$DOTFILES/zellij/layouts/default.kdl" "$HOME/.config/zellij/layouts/default.kdl"
+
+echo "==> nvim"
+link "$DOTFILES/nvim" "$HOME/.config/nvim"
+
 echo
 echo "Done. Open a new shell or run: exec zsh"
