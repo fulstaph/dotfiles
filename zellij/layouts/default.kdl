@@ -1,0 +1,33 @@
+layout {
+    pane
+    pane size=1 borderless=true {
+        plugin location="https://github.com/dj95/zjstatus/releases/download/v0.25.0/zjstatus.wasm" {
+            format_left  "{mode} #[fg=#31748f,bold]{session} {tabs}"
+            format_right "#[fg=#908caa,bold]{datetime}"
+            format_space ""
+
+            border_enabled  "false"
+            hide_frame_for_single_pane "true"
+
+            mode_locked   "#[bg=#31748f,fg=#191724,bold] LOCKED "
+            mode_normal   "#[bg=#f6c177,fg=#191724,bold] NORMAL "
+            mode_pane     "#[bg=#ebbcba,fg=#191724,bold] PANE "
+            mode_tab      "#[bg=#c4a7e7,fg=#191724,bold] TAB "
+            mode_scroll   "#[bg=#9ccfd8,fg=#191724,bold] SCROLL "
+            mode_session  "#[bg=#eb6f92,fg=#191724,bold] SESSION "
+            mode_resize   "#[bg=#f6c177,fg=#191724,bold] RESIZE "
+            mode_move     "#[bg=#ebbcba,fg=#191724,bold] MOVE "
+            mode_default_to_mode "normal"
+
+            tab_normal   "#[fg=#6e6a86] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator}"
+            tab_active   "#[fg=#e0def4,bold] {index} {name} {fullscreen_indicator}{sync_indicator}{floating_indicator}"
+
+            tab_fullscreen_indicator "□ "
+            tab_sync_indicator       " "
+            tab_floating_indicator   "󰉈 "
+
+            datetime        "#[fg=#908caa] {format} "
+            datetime_format "%H:%M"
+        }
+    }
+}

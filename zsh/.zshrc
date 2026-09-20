@@ -1,9 +1,30 @@
 # ─────────────────────────────────────────────
-# ZSH CONFIG
+# ZSH CONFIG — platform: macOS + Linux
 # ─────────────────────────────────────────────
 
+# ── Platform detection ────────────────────────
+case "$OSTYPE" in
+  darwin*) OS=mac ;;
+  linux*)  OS=linux ;;
+  *)       OS=unknown ;;
+esac
+
+# Homebrew prefix (macOS only; resolved once, never shelled out again)
+if [[ $OS == mac ]]; then
+  if [[ -x /opt/homebrew/bin/brew ]]; then   # Apple Silicon
+    BREW=/opt/homebrew
+  elif [[ -x /usr/local/bin/brew ]]; then    # Intel
+    BREW=/usr/local
+  fi
+fi
+
 # ── Completion ────────────────────────────────
-fpath=(/opt/homebrew/share/zsh-completions ~/.grok/completions/zsh $fpath)
+fpath=(
+  ${BREW:+$BREW/share/zsh-completions}
+  ${BREW:+$BREW/share/zsh/site-functions}
+  ~/.grok/completions/zsh
+  $fpath
+)
 autoload -Uz compinit
 # Rebuild completion dump at most once per day
 if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]]; then
@@ -13,7 +34,7 @@ else
 fi
 
 zstyle ':completion:*' menu select
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' # case-insensitive
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}No matches%f'
@@ -24,19 +45,19 @@ zstyle ':completion:*' squeeze-slashes true
 HISTFILE=~/.zsh_history
 HISTSIZE=100000
 SAVEHIST=100000
-setopt HIST_IGNORE_DUPS      # skip consecutive dupes
-setopt HIST_IGNORE_SPACE     # skip lines starting with space
-setopt HIST_FIND_NO_DUPS     # no dupes when searching
-setopt SHARE_HISTORY         # share across sessions
-setopt EXTENDED_HISTORY      # timestamp + elapsed in history file
-setopt INC_APPEND_HISTORY    # append immediately, not on exit
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_FIND_NO_DUPS
+setopt SHARE_HISTORY
+setopt EXTENDED_HISTORY
+setopt INC_APPEND_HISTORY
 
 # ── Behaviour ─────────────────────────────────
-setopt AUTO_CD               # type a dir name to cd into it
-setopt AUTO_PUSHD            # cd pushes to directory stack
+setopt AUTO_CD
+setopt AUTO_PUSHD
 setopt PUSHD_IGNORE_DUPS
-setopt CORRECT               # suggest corrections for mistyped commands
-setopt INTERACTIVE_COMMENTS  # allow # comments in interactive shell
+setopt CORRECT
+setopt INTERACTIVE_COMMENTS
 setopt NO_BEEP
 
 # ── Vim mode ──────────────────────────────────
@@ -55,23 +76,23 @@ bindkey '^N' down-line-or-history
 bindkey '^F' forward-char
 bindkey '^B' backward-char
 bindkey '^D' delete-char-or-list
-bindkey '^H' backward-delete-char     # Backspace over insert boundary
-bindkey '^?' backward-delete-char     # same for terminals that send DEL
+bindkey '^H' backward-delete-char
+bindkey '^?' backward-delete-char
 
-# History search works in both modes
-bindkey '^[[A' history-search-backward   # ↑
-bindkey '^[[B' history-search-forward    # ↓
+# History search in both modes
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
 bindkey -M vicmd 'k' history-search-backward
 bindkey -M vicmd 'j' history-search-forward
 
-# Navigation keys (insert mode)
-bindkey '^[[H' beginning-of-line         # Home
-bindkey '^[[F' end-of-line               # End
-bindkey '^[[3~' delete-char              # Del
-bindkey '^[^[[C' forward-word            # Alt-→
-bindkey '^[^[[D' backward-word           # Alt-←
+# Navigation keys
+bindkey '^[[H' beginning-of-line
+bindkey '^[[F' end-of-line
+bindkey '^[[3~' delete-char
+bindkey '^[^[[C' forward-word
+bindkey '^[^[[D' backward-word
 
-# v in normal mode → edit command in $EDITOR (like bash's Ctrl-X Ctrl-E)
+# v in normal mode → edit command in $EDITOR
 autoload -Uz edit-command-line
 zle -N edit-command-line
 bindkey -M vicmd 'v' edit-command-line
@@ -80,19 +101,19 @@ bindkey -M vicmd 'v' edit-command-line
 _zvm_update() {
   case $KEYMAP in
     vicmd)
-      print -n '\e[2 q'                  # block cursor
-      export STARSHIP_SHELL_VI_MODE=1    # Starship: use vimcmd_symbol (❮)
+      print -n '\e[2 q'
+      export STARSHIP_SHELL_VI_MODE=1
       ;;
     viins|main)
-      print -n '\e[6 q'                  # beam cursor
-      unset STARSHIP_SHELL_VI_MODE       # Starship: back to normal symbol (❯)
+      print -n '\e[6 q'
+      unset STARSHIP_SHELL_VI_MODE
       ;;
   esac
-  zle reset-prompt                       # redraw prompt immediately
+  zle reset-prompt
 }
 zle -N zle-keymap-select _zvm_update
-zle-line-init()    { print -n '\e[6 q' }  # beam on new prompt
-zle-line-finish()  { print -n '\e[2 q' }  # block while command runs
+zle-line-init()   { print -n '\e[6 q' }
+zle-line-finish() { print -n '\e[2 q' }
 zle -N zle-line-init
 zle -N zle-line-finish
 
@@ -100,45 +121,75 @@ zle -N zle-line-finish
 export EDITOR=nvim
 export VISUAL=nvim
 
-# ── Path (deduplicated) ───────────────────────
+# ── XDG base dirs (Linux standard; set explicitly so macOS tools honour them too) ──
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+
+# ── Path ──────────────────────────────────────
 typeset -U path
 path=(
   $HOME/.local/bin
   $HOME/.grok/bin
   $HOME/.opencode/bin
-  $HOME/.antigravity-ide/antigravity-ide/bin
-  $PNPM_HOME
-  "$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
-  "$HOME/.lmstudio/bin"
+  ${BREW:+$BREW/bin}
   $path
 )
 
-# ── Package managers ──────────────────────────
-# NVM (lazy-load for faster startup)
+# macOS-only path entries
+if [[ $OS == mac ]]; then
+  path=(
+    $HOME/.antigravity-ide/antigravity-ide/bin
+    "$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
+    $HOME/.lmstudio/bin
+    $path
+  )
+fi
+
+# ── pnpm ──────────────────────────────────────
+if [[ $OS == mac ]]; then
+  export PNPM_HOME="$HOME/Library/pnpm"
+else
+  export PNPM_HOME="$XDG_DATA_HOME/pnpm"
+fi
+path=($PNPM_HOME $path)
+
+# ── NVM (lazy-load) ───────────────────────────
 export NVM_DIR="$HOME/.nvm"
 nvm() {
   unfunction nvm
-  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && source "/opt/homebrew/opt/nvm/nvm.sh"
-  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && source "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+  local nvm_sh
+  if [[ $OS == mac && -n $BREW ]]; then
+    nvm_sh="$BREW/opt/nvm/nvm.sh"
+  else
+    nvm_sh="$NVM_DIR/nvm.sh"   # Linux: installed by nvm install script
+  fi
+  [[ -s $nvm_sh ]] && source "$nvm_sh"
+  [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
   nvm "$@"
 }
 
-# pnpm
-export PNPM_HOME="/Users/georgy_bokovikov/Library/pnpm"
-
 # ── Google Cloud SDK ──────────────────────────
-[[ -f /opt/homebrew/share/google-cloud-sdk/path.zsh.inc ]] &&
-  source /opt/homebrew/share/google-cloud-sdk/path.zsh.inc
-[[ -f /opt/homebrew/share/google-cloud-sdk/completion.zsh.inc ]] &&
-  source /opt/homebrew/share/google-cloud-sdk/completion.zsh.inc
+_gcloud_inc() {
+  local base
+  if [[ $OS == mac && -n $BREW ]]; then
+    base="$BREW/share/google-cloud-sdk"
+  else
+    base="${CLOUDSDK_ROOT_DIR:-$HOME/.local/share/google-cloud-sdk}"
+  fi
+  [[ -f "$base/path.zsh.inc" ]]        && source "$base/path.zsh.inc"
+  [[ -f "$base/completion.zsh.inc" ]]  && source "$base/completion.zsh.inc"
+}
+_gcloud_inc
+unfunction _gcloud_inc
 
 # ── Aliases — navigation ──────────────────────
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
-alias -- -='cd -'           # go back
+alias -- -='cd -'
 
-# ── Aliases — listing (eza > ls) ─────────────
+# ── Aliases — listing (eza) ───────────────────
 alias ls='eza --icons --group-directories-first'
 alias ll='eza -lh --icons --group-directories-first --git'
 alias la='eza -lah --icons --group-directories-first --git'
@@ -173,7 +224,9 @@ alias grb='git rebase'
 alias grbi='git rebase -i'
 
 # ── Aliases — misc ────────────────────────────
-alias cat='bat --style=plain --paging=never'        # bat is installed
+if command -v bat &>/dev/null; then
+  alias cat='bat --style=plain --paging=never'
+fi
 alias grep='grep --color=auto'
 alias mkdir='mkdir -p'
 alias cp='cp -iv'
@@ -181,40 +234,53 @@ alias mv='mv -iv'
 alias rm='rm -iv'
 alias df='df -h'
 alias du='du -sh'
-alias ports='lsof -iTCP -sTCP:LISTEN -P'           # show listening ports
-alias path='echo $PATH | tr ":" "\n"'              # readable PATH
-alias reload='exec zsh'                             # reload shell
-alias zshrc='$EDITOR ~/.zshrc'                     # quick edit
+alias path='echo $PATH | tr ":" "\n"'
+alias reload='exec zsh'
+alias zshrc='$EDITOR ~/.zshrc'
+
+# platform-appropriate open
+if [[ $OS == mac ]]; then
+  alias open='open'
+else
+  alias open='xdg-open'
+fi
+
+# listening ports
+if [[ $OS == mac ]]; then
+  alias ports='lsof -iTCP -sTCP:LISTEN -P'
+else
+  alias ports='ss -tlnp'
+fi
 
 # ── Functions ─────────────────────────────────
 
-# make dir and cd into it
 mkcd() { mkdir -p "$1" && cd "$1" }
 
-# show process using a port
-port() { lsof -iTCP:"$1" -sTCP:LISTEN -P }
+port() {
+  if [[ $OS == mac ]]; then
+    lsof -iTCP:"$1" -sTCP:LISTEN -P
+  else
+    ss -tlnp "sport = :$1"
+  fi
+}
 
-# fuzzy cd with zoxide + fzf
 fcd() {
   local dir
   dir=$(zoxide query -l | fzf --height=40% --reverse --preview 'eza --tree --level=1 --icons {}' 2>/dev/null) && cd "$dir"
 }
 
-# fuzzy kill
 fkill() {
   local pid
   pid=$(ps -ef | sed 1d | fzf -m --height=40% | awk '{print $2}')
   [[ -n "$pid" ]] && echo "$pid" | xargs kill "${1:--15}"
 }
 
-# git fuzzy branch checkout
 gcob() {
   local branch
   branch=$(git branch -a | fzf --height=40% --reverse | sed 's/remotes\/origin\///' | tr -d '[:space:]*')
   [[ -n "$branch" ]] && git checkout "$branch"
 }
 
-# extract any archive
 extract() {
   case "$1" in
     *.tar.bz2) tar xjf "$1" ;;
@@ -231,36 +297,65 @@ extract() {
   esac
 }
 
-# quick HTTP server in current dir
 serve() { python3 -m http.server "${1:-8000}" }
 
 # ── Plugins ───────────────────────────────────
-source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+_source_plugin() {
+  local name="$1"
+  # Homebrew (macOS)
+  if [[ -n $BREW && -f "$BREW/share/$name/$name.zsh" ]]; then
+    source "$BREW/share/$name/$name.zsh"
+    return
+  fi
+  # apt/dnf path (Linux)
+  local linux_path="/usr/share/$name/$name.zsh"
+  [[ -f $linux_path ]] && source "$linux_path" && return
+  # fallback: ~/.zsh/<name>
+  [[ -f "$HOME/.zsh/$name/$name.zsh" ]] && source "$HOME/.zsh/$name/$name.zsh"
+}
+_source_plugin zsh-autosuggestions
+_source_plugin zsh-syntax-highlighting
+unfunction _source_plugin
 
-# autosuggestion style — re-bind for viins explicitly so bindkey -v doesn't lose it
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
-bindkey -M viins '^ ' autosuggest-accept   # Ctrl-Space to accept suggestion
-bindkey -M viins '^L' autosuggest-accept   # Ctrl-L also accepts (feel-good fallback)
+bindkey -M viins '^ ' autosuggest-accept
+bindkey -M viins '^L' autosuggest-accept
 
 # ── FZF ───────────────────────────────────────
-eval "$(fzf --zsh)"
+# fzf --zsh requires ≥0.48; older distro packages use manual sourcing
+if fzf --zsh &>/dev/null; then
+  eval "$(fzf --zsh)"
+else
+  # Fallback: source shell integration files from common install locations
+  local _fzf_base
+  for _fzf_base in \
+    "${BREW:+$BREW/opt/fzf}" \
+    "$HOME/.fzf" \
+    /usr/share/doc/fzf/examples \
+    /usr/share/fzf; do
+    [[ -z "$_fzf_base" ]] && continue
+    [[ -f "$_fzf_base/shell/key-bindings.zsh" ]] && source "$_fzf_base/shell/key-bindings.zsh"
+    [[ -f "$_fzf_base/shell/completion.zsh"   ]] && source "$_fzf_base/shell/completion.zsh"
+    [[ -f "$_fzf_base/key-bindings.zsh"       ]] && source "$_fzf_base/key-bindings.zsh"
+    [[ -f "$_fzf_base/completion.zsh"         ]] && source "$_fzf_base/completion.zsh"
+  done
+  unset _fzf_base
+fi
 export FZF_DEFAULT_OPTS="
   --height=50% --layout=reverse --border=rounded
   --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8
   --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc
   --color=marker:#f5e0dc,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8
 "
-# use fd if available (faster than find)
 if command -v fd &>/dev/null; then
   export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
   export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
   export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
 fi
 
-# ── Zoxide (smart cd) ─────────────────────────
-eval "$(zoxide init zsh --cmd cd)"   # replaces cd with smart z
+# ── Zoxide ────────────────────────────────────
+eval "$(zoxide init zsh --cmd cd)"
 
 # ── Prompt (Starship) ─────────────────────────
 eval "$(starship init zsh)"
