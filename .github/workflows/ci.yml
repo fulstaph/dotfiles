@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-linux:
+    name: zshrc — ${{ matrix.distro }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          - ubuntu:24.04
+          - ubuntu:22.04
+
+    container:
+      image: ${{ matrix.distro }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test zshrc
+        run: bash scripts/test-zshrc.sh
+
+  lint-sh:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          sudo apt-get install -y -qq shellcheck
+          shellcheck install.zsh || true   # zsh-specific syntax; best-effort
+          shellcheck scripts/test-zshrc.sh test-linux.sh

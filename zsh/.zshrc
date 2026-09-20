@@ -9,14 +9,19 @@ case "$OSTYPE" in
   *)       OS=unknown ;;
 esac
 
-# Homebrew prefix (macOS only; resolved once, never shelled out again)
+# Homebrew prefix — resolved once at startup, never shelled out again
+# Linux brew lives in /home/linuxbrew or ~/.linuxbrew
+BREW=""
 if [[ $OS == mac ]]; then
-  if [[ -x /opt/homebrew/bin/brew ]]; then   # Apple Silicon
-    BREW=/opt/homebrew
-  elif [[ -x /usr/local/bin/brew ]]; then    # Intel
-    BREW=/usr/local
+  if   [[ -x /opt/homebrew/bin/brew ]];  then BREW=/opt/homebrew   # Apple Silicon
+  elif [[ -x /usr/local/bin/brew ]];     then BREW=/usr/local       # Intel
+  fi
+elif [[ $OS == linux ]]; then
+  if   [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then BREW=/home/linuxbrew/.linuxbrew
+  elif [[ -x $HOME/.linuxbrew/bin/brew ]];            then BREW=$HOME/.linuxbrew
   fi
 fi
+[[ -n $BREW ]] && eval "$($BREW/bin/brew shellenv)" 2>/dev/null
 
 # ── Completion ────────────────────────────────
 fpath=(
