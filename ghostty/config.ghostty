@@ -1,0 +1,115 @@
+# ============================================================
+# Ghostty — Neovim + Zellij + Oh My Pi
+#
+# Philosophy:
+#   Cmd-*   = Ghostty / macOS
+#   Ctrl-a  = Zellij
+#   Ctrl-*  = terminal apps
+#   Alt-*   = terminal apps
+# ============================================================
+
+
+# ------------------------------------------------------------
+# FONT
+# ------------------------------------------------------------
+
+# Ghostty's bundled JetBrains Mono is excellent.
+# No external Nerd Font installation required.
+font-size = 14
+
+# Slightly roomier terminal without wasting screen space.
+adjust-cell-height = 5%
+
+
+# ------------------------------------------------------------
+# THEME
+# ------------------------------------------------------------
+
+# Built-in Ghostty themes.
+# Automatically follows macOS light/dark appearance.
+theme = light:Rose Pine Dawn,dark:Rose Pine
+
+
+# ------------------------------------------------------------
+# WINDOW
+# ------------------------------------------------------------
+
+# Enough breathing room without wasting useful terminal space.
+window-padding-x = 8
+window-padding-y = 6
+window-padding-balance = true
+
+# Makes Neovim/TUI backgrounds extend nicely into padding.
+window-padding-color = extend
+
+# Zellij is responsible for restoring terminal workspaces.
+# Don't have Ghostty independently resurrect tabs/splits.
+window-save-state = never
+
+# Keep native rendering synchronized.
+# Ghostty specifically recommends leaving this enabled on macOS.
+window-vsync = true
+
+
+# ------------------------------------------------------------
+# macOS
+# ------------------------------------------------------------
+
+# Option should behave as real Alt inside Neovim, OMP, shell TUIs, etc.
+macos-option-as-alt = true
+
+# Clean terminal window without a large title bar.
+# Zellij already gives us tab/workspace information.
+macos-titlebar-style = hidden
+
+# Automatically enable macOS Secure Input for password prompts.
+macos-auto-secure-input = true
+
+
+# ------------------------------------------------------------
+# CLIPBOARD
+# ------------------------------------------------------------
+
+# Terminal programs may write to the clipboard (OSC 52).
+clipboard-write = allow
+
+# Programs must ask before reading clipboard contents.
+clipboard-read = ask
+
+# Don't accidentally execute suspicious multiline pastes.
+clipboard-paste-protection = true
+
+# Cleaner copied terminal output.
+clipboard-trim-trailing-spaces = true
+
+# Selecting text automatically copies it.
+copy-on-select = true
+
+
+# ------------------------------------------------------------
+# WORKING DIRECTORY
+# ------------------------------------------------------------
+
+# Mostly relevant if you occasionally create a native Ghostty window/tab.
+window-inherit-working-directory = true
+tab-inherit-working-directory = true
+split-inherit-working-directory = true
+
+
+# ------------------------------------------------------------
+# IMPORTANT: KEYBINDINGS
+# ------------------------------------------------------------
+
+# Deliberately NO Ctrl-* bindings here.
+#
+# Ctrl-a is reserved for Zellij.
+# Other Ctrl combinations belong to Neovim / OMP / shell.
+#
+# Ghostty's normal macOS Cmd shortcuts remain available:
+#
+#   Cmd+C            copy
+#   Cmd+V            paste
+#   Cmd++/-          font size
+#   Cmd+Shift+,      reload config
+#
+# This keeps the keyboard hierarchy predictable.
