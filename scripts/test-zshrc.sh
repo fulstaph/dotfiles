@@ -107,4 +107,5 @@ fi
 
 [[ -n "$MISSING" ]] && echo "WARN — some tools missing (non-fatal): $MISSING"
 
-echo "PASS: zshrc sourced cleanly on Linux (${ARCH} / $(. /etc/os-release && echo "$PRETTY_NAME"))"
+PRETTY_NAME=$(grep -m1 '^PRETTY_NAME' /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '"' || echo "Linux")
+echo "PASS: zshrc sourced cleanly on Linux (${ARCH} / ${PRETTY_NAME})"

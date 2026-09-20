@@ -2,6 +2,20 @@
 
 Personal shell and editor config. **Single source of truth** — no separate per-tool repos.
 
+## Fresh machine setup
+
+One command — installs Homebrew if missing, installs all tools, symlinks configs, sets zsh as default shell:
+
+```sh
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/fulstaph/dotfiles/main/setup.sh)"
+```
+
+Or if already cloned:
+
+```sh
+bash ~/dotfiles/setup.sh
+```
+
 ## Contents
 
 | Directory | Tool | Symlinked to |
@@ -12,54 +26,37 @@ Personal shell and editor config. **Single source of truth** — no separate per
 | `zellij/` | Zellij multiplexer | `~/.config/zellij/` |
 | `nvim/` | Neovim (LazyVim) | `~/.config/nvim/` |
 
-## Install
-
-```zsh
-git clone https://github.com/fulstaph/dotfiles ~/dotfiles
-cd ~/dotfiles
-zsh install.zsh
-```
-
-Preview without touching anything:
-
-```zsh
-zsh install.zsh --dry-run
-```
-
-Existing files are moved to `<file>.bak.<timestamp>` before symlinking.
-
-## Dependencies
-
-### macOS (Homebrew)
-
-```zsh
-brew install eza zoxide starship fzf bat fd \
-  zsh-autosuggestions zsh-syntax-highlighting zsh-completions
-```
-
-### Linux (apt)
+## Symlinks only (existing machine)
 
 ```sh
-apt install zsh fzf bat fd-find zsh-autosuggestions zsh-syntax-highlighting
-# then install from upstream (no apt package):
-curl -fsSL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
-curl -fsSL https://starship.rs/install.sh | sh
-# eza: grab release binary from https://github.com/eza-community/eza/releases
+zsh install.zsh           # symlink all configs
+zsh install.zsh --dry-run # preview without changing anything
 ```
 
-## Testing on Linux
-
-Requires podman or docker:
-
-```zsh
-zsh test-linux.sh   # runs Ubuntu 24.04 container, installs deps, sources config
-```
+Existing files are backed up to `<file>.bak.<timestamp>` before symlinking.
 
 ## Editing
 
-Edit files in `~/dotfiles/` — symlinks mean changes are live immediately.
+Edit files in `~/dotfiles/` — symlinks mean changes are live immediately:
 
-```zsh
+```sh
 cd ~/dotfiles
 git add -A && git commit -m "..." && git push
+```
+
+## CI
+
+| Job | What it tests |
+|---|---|
+| `zshrc — ubuntu:24.04` | Sources cleanly, all tools resolve |
+| `zshrc — ubuntu:22.04` | Same on older LTS |
+| `zshrc — macos-latest` | Sources cleanly via Homebrew |
+| `shellcheck` | Bash scripts are clean |
+
+## Local Linux test (macOS dev)
+
+Requires podman or docker:
+
+```sh
+bash test-linux.sh
 ```

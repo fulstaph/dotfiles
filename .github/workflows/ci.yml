@@ -7,6 +7,7 @@ on:
     branches: [main]
 
 jobs:
+  # ── Linux (containerised, matrix) ───────────────────────────────────────
   test-linux:
     name: zshrc — ${{ matrix.distro }}
     runs-on: ubuntu-latest
@@ -16,22 +17,28 @@ jobs:
         distro:
           - ubuntu:24.04
           - ubuntu:22.04
-
     container:
       image: ${{ matrix.distro }}
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Test zshrc
         run: bash scripts/test-zshrc.sh
 
-  lint-sh:
+  # ── macOS ────────────────────────────────────────────────────────────────
+  test-macos:
+    name: zshrc — macos-latest
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test zshrc
+        run: bash scripts/test-zshrc-mac.sh
+
+  # ── Shellcheck (bash scripts only — install.zsh is zsh, excluded) ────────
+  shellcheck:
     name: shellcheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          sudo apt-get install -y -qq shellcheck
-          shellcheck install.zsh || true   # zsh-specific syntax; best-effort
-          shellcheck scripts/test-zshrc.sh test-linux.sh
+      - name: Run shellcheck
+        run: |
+          shellcheck setup.sh scripts/test-zshrc.sh scripts/test-zshrc-mac.sh test-linux.sh
