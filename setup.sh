@@ -96,10 +96,10 @@ zsh "$DOTFILES/install.zsh"
 
 # ── 5. Set default shell to zsh ───────────────────────────────────────────
 step "Default shell"
-ZSH_PATH=$(command -v zsh)
-if [[ "$SHELL" == "$ZSH_PATH" ]]; then
-  echo "  already zsh ($ZSH_PATH)"
+if [[ "$SHELL" == *"zsh"* ]]; then
+  echo "  already zsh ($SHELL)"
 else
+  ZSH_PATH=$(command -v zsh || echo "/bin/zsh")
   if ! grep -qF "$ZSH_PATH" /etc/shells 2>/dev/null; then
     echo "  adding $ZSH_PATH to /etc/shells..."
     echo "$ZSH_PATH" | sudo tee -a /etc/shells >/dev/null

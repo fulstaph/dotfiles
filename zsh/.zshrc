@@ -27,7 +27,7 @@ fi
 fpath=(
   ${BREW:+$BREW/share/zsh-completions}
   ${BREW:+$BREW/share/zsh/site-functions}
-  ~/.grok/completions/zsh
+  ~/.grok/completions/zsh(N/)
   $fpath
 )
 autoload -Uz compinit
@@ -102,19 +102,12 @@ autoload -Uz edit-command-line
 zle -N edit-command-line
 bindkey -M vicmd 'v' edit-command-line
 
-# Cursor shape + Starship vi-mode indicator
+# Cursor shape in vi mode (Starship handles prompt redraw and vi symbols natively)
 _zvm_update() {
   case $KEYMAP in
-    vicmd)
-      print -n '\e[2 q'
-      export STARSHIP_SHELL_VI_MODE=1
-      ;;
-    viins|main)
-      print -n '\e[6 q'
-      unset STARSHIP_SHELL_VI_MODE
-      ;;
+    vicmd)      print -n '\e[2 q' ;;  # block
+    viins|main) print -n '\e[6 q' ;;  # beam
   esac
-  zle reset-prompt
 }
 zle -N zle-keymap-select _zvm_update
 zle-line-init()   { print -n '\e[6 q' }

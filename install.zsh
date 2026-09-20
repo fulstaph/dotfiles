@@ -1,63 +1,71 @@
 #!/usr/bin/env zsh
-# install.zsh — bootstrap Homebrew, install tools, symlink dotfiles
-# Usage: zsh install.zsh [--dry-run]
+# install.zsh — symlink dotfiles into place
+# Usage: zsh install.zsh [--dry-run] [--packages]
 
 set -euo pipefail
 
-DRY=${1:-}
+DRY=false
+INSTALL_PACKAGES=false
+
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY=true ;;
+    --packages|--with-brew) INSTALL_PACKAGES=true ;;
+    *) echo "Unknown option: $arg" >&2; exit 1 ;;
+  esac
+done
+
 DOTFILES="$(cd "$(dirname "$0")" && pwd)"
 
-# ── Platform ──────────────────────────────────────────────────────────────
-case "$OSTYPE" in
-  darwin*) OS=mac ;;
-  linux*)  OS=linux ;;
-  *)       OS=unknown ;;
-esac
+# ── Optional package bootstrap (--packages) ────────────────────────────────
+if [[ "$INSTALL_PACKAGES" == true ]]; then
+  case "$OSTYPE" in
+    darwin*) OS=mac ;;
+    linux*)  OS=linux ;;
+    *)       OS=unknown ;;
+  esac
 
-# ── Homebrew ──────────────────────────────────────────────────────────────
-_find_brew() {
-  for p in \
-    /opt/homebrew/bin/brew \
-    /usr/local/bin/brew \
-    /home/linuxbrew/.linuxbrew/bin/brew \
-    "$HOME/.linuxbrew/bin/brew"; do
-    [[ -x "$p" ]] && echo "$p" && return
-  done
-}
+  _find_brew() {
+    for p in \
+      /opt/homebrew/bin/brew \
+      /usr/local/bin/brew \
+      /home/linuxbrew/.linuxbrew/bin/brew \
+      "$HOME/.linuxbrew/bin/brew"; do
+      [[ -x "$p" ]] && echo "$p" && return
+    done
+  }
 
-BREW_BIN=$(_find_brew)
+  BREW_BIN=$(_find_brew)
+  if [[ -z "$BREW_BIN" ]]; then
+    if [[ "$DRY" == true ]]; then
+      echo "[dry] would install Homebrew"
+    else
+      echo "==> Homebrew not found — installing..."
+      NONINTERACTIVE=1 bash -c \
+        "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      BREW_BIN=$(_find_brew)
+    fi
+  fi
 
-if [[ -z "$BREW_BIN" ]]; then
-  if [[ "$DRY" == "--dry-run" ]]; then
-    echo "[dry] would install Homebrew"
-  else
-    echo "==> Homebrew not found — installing..."
-    NONINTERACTIVE=1 bash -c \
-      "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    BREW_BIN=$(_find_brew)
+  if [[ -n "$BREW_BIN" && "$DRY" != true ]]; then
+    eval "$($BREW_BIN shellenv)"
+    echo "==> Installing packages via Homebrew..."
+    brew install --quiet \
+      eza zoxide starship fzf bat fd \
+      zsh-autosuggestions zsh-syntax-highlighting zsh-completions \
+      2>/dev/null || true
+    if [[ $OS == mac ]]; then
+      brew install --quiet nvm 2>/dev/null || true
+    fi
+  elif [[ "$DRY" == true ]]; then
+    echo "[dry] would brew install eza zoxide starship fzf bat fd ..."
   fi
 fi
-
-if [[ -n "$BREW_BIN" && "$DRY" != "--dry-run" ]]; then
-  eval "$($BREW_BIN shellenv)"
-  echo "==> Installing packages via Homebrew..."
-  brew install --quiet \
-    eza zoxide starship fzf bat fd \
-    zsh-autosuggestions zsh-syntax-highlighting zsh-completions \
-    2>/dev/null || true
-  # macOS: nvm lives in brew; Linux: install script puts it in ~/.nvm
-  if [[ $OS == mac ]]; then
-    brew install --quiet nvm 2>/dev/null || true
-  fi
-elif [[ "$DRY" == "--dry-run" ]]; then
-  echo "[dry] would brew install eza zoxide starship fzf bat fd ..."
-fi
-
 
 link() {
   local src="$1" dst="$2"
   mkdir -p "$(dirname "$dst")"
-  if [[ "$DRY" == "--dry-run" ]]; then
+  if [[ "$DRY" == true ]]; then
     echo "[dry] $dst -> $src"
     return
   fi
