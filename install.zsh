@@ -100,5 +100,25 @@ link "$DOTFILES/zellij/layouts/default.kdl" "$HOME/.config/zellij/layouts/defaul
 echo "==> nvim"
 link "$DOTFILES/nvim" "$HOME/.config/nvim"
 
+echo "==> git"
+link "$DOTFILES/git/.gitconfig" "$HOME/.gitconfig"
+if [[ ! -f "$HOME/.gitconfig.local" && "$DRY" != true ]]; then
+  echo "  creating ~/.gitconfig.local template..."
+  cat > "$HOME/.gitconfig.local" <<'EOF'
+# Local machine-specific Git identity — never committed to public dotfiles.
+[user]
+    name = Your Name
+    email = your.email@example.com
+EOF
+elif [[ "$DRY" == true && ! -f "$HOME/.gitconfig.local" ]]; then
+  echo "[dry] would create ~/.gitconfig.local template"
+fi
+
+echo "==> zed"
+link "$DOTFILES/zed/settings.json" "$HOME/.config/zed/settings.json"
+
+echo "==> gh"
+link "$DOTFILES/gh/config.yml" "$HOME/.config/gh/config.yml"
+
 echo
 echo "Done. Open a new shell or run: exec zsh"

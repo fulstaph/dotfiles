@@ -25,7 +25,9 @@ bash ~/dotfiles/setup.sh
 | `ghostty/` | Ghostty terminal | `~/.config/ghostty/config.ghostty` |
 | `zellij/` | Zellij multiplexer | `~/.config/zellij/` |
 | `nvim/` | Neovim (LazyVim) | `~/.config/nvim/` |
-
+| `git/` | Git config | `~/.gitconfig` |
+| `zed/` | Zed editor | `~/.config/zed/settings.json` |
+| `gh/` | GitHub CLI | `~/.config/gh/config.yml` |
 ## Symlinks only (existing machine)
 
 ```sh
@@ -43,6 +45,25 @@ Edit files in `~/dotfiles/` — symlinks mean changes are live immediately:
 cd ~/dotfiles
 git add -A && git commit -m "..." && git push
 ```
+
+## Git Identity (Work vs Personal Isolation)
+
+`git/.gitconfig` provides global sane defaults (`nvim` editor, `pull.rebase`, `zdiff3` conflicts, `autoSetupRemote`), but intentionally **omits any author name or email**.
+
+Instead, it includes `~/.gitconfig.local`:
+
+```ini
+# ~/.gitconfig.local (never committed)
+[user]
+    name = Your Name
+    email = your.work.or.personal.email@example.com
+```
+
+`install.zsh` auto-creates a template if none exists. Your work credentials stay purely on your machine.
+
+## Agent Configs (Oh My Pi & Pi)
+
+`setup.sh` detects if [Oh My Pi](https://github.com/fulstaph/omp-config) or [Pi](https://github.com/fulstaph/pi-agent-config) are installed and automatically syncs their non-credential configurations from your dedicated agent repos (`fulstaph/omp-config` and `fulstaph/pi-agent-config`).
 
 ## CI
 

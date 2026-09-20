@@ -81,6 +81,7 @@ PACKAGES=(
   zellij
   # essentials
   git
+  gh
   curl
 )
 
@@ -107,6 +108,55 @@ else
   echo "  changing default shell to $ZSH_PATH..."
   chsh -s "$ZSH_PATH"
   echo "  re-login or run: exec zsh"
+fi
+
+# ── 6. Agent configs (Oh My Pi & Pi) ──────────────────────────────────────
+step "Agent configs (Oh My Pi & Pi)"
+
+# Oh My Pi (~/.omp/agent)
+OMP_DIR="$HOME/.omp/agent"
+OMP_SRC="${OMP_CONFIG_DIR:-$HOME/.config/omp-config}"
+if [[ -d "$OMP_DIR" ]] || command -v omp &>/dev/null; then
+  echo "  syncing Oh My Pi configs (fulstaph/omp-config)..."
+  mkdir -p "$OMP_DIR"
+  if [[ -d "$OMP_SRC/.git" ]]; then
+    git -C "$OMP_SRC" pull --ff-only 2>/dev/null || true
+  else
+    git clone --depth=1 https://github.com/fulstaph/omp-config.git "$OMP_SRC" 2>/dev/null || true
+  fi
+  if [[ -d "$OMP_SRC" ]]; then
+    for f in config.yml models.yml plugins.json; do
+      if [[ -f "$OMP_SRC/$f" && ! -f "$OMP_DIR/$f" ]]; then
+        cp "$OMP_SRC/$f" "$OMP_DIR/$f"
+        echo "    seeded $f"
+      fi
+    done
+  fi
+else
+  echo "  omp not detected — skipping (clone fulstaph/omp-config if installing later)"
+fi
+
+# Pi (~/.pi/agent)
+PI_DIR="$HOME/.pi/agent"
+PI_SRC="${PI_CONFIG_DIR:-$HOME/.config/pi-agent-config}"
+if [[ -d "$PI_DIR" ]] || command -v pi &>/dev/null; then
+  echo "  syncing Pi configs (fulstaph/pi-agent-config)..."
+  mkdir -p "$PI_DIR"
+  if [[ -d "$PI_SRC/.git" ]]; then
+    git -C "$PI_SRC" pull --ff-only 2>/dev/null || true
+  else
+    git clone --depth=1 https://github.com/fulstaph/pi-agent-config.git "$PI_SRC" 2>/dev/null || true
+  fi
+  if [[ -d "$PI_SRC" ]]; then
+    for item in AGENTS.md CLAUDE.md keybindings.json mcp.json settings.json agents prompts skills; do
+      if [[ -e "$PI_SRC/$item" && ! -e "$PI_DIR/$item" ]]; then
+        ln -sf "$PI_SRC/$item" "$PI_DIR/$item"
+        echo "    linked $item"
+      fi
+    done
+  fi
+else
+  echo "  pi not detected — skipping (clone fulstaph/pi-agent-config if installing later)"
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────

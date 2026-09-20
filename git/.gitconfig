@@ -1,0 +1,23 @@
+[core]
+    editor = nvim
+    autocrlf = input
+
+[init]
+    defaultBranch = main
+
+[pull]
+    rebase = true
+
+[push]
+    autoSetupRemote = true
+
+[merge]
+    conflictstyle = zdiff3
+
+[diff]
+    colorMoved = default
+
+# Machine-specific identity (work/personal email, signing keys).
+# Create ~/.gitconfig.local on each machine — never committed to public dotfiles.
+[include]
+    path = ~/.gitconfig.local
