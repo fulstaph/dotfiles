@@ -77,11 +77,13 @@ TESTHOME=$(mktemp -d)
 trap 'rm -rf "$TESTHOME"' EXIT
 
 cp "$DOTFILES/zsh/.zshrc" "$TESTHOME/.zshrc"
+cp "$DOTFILES/zsh/.zprofile" "$TESTHOME/.zprofile"
 mkdir -p "$TESTHOME/.config"
 cp "$DOTFILES/starship/starship.toml" "$TESTHOME/.config/starship.toml"
 
-echo "=== sourcing zshrc ==="
+echo "=== sourcing zsh configuration ==="
 OUTPUT=$(TERM=xterm-256color HOME="$TESTHOME" zsh --no-rcs -c '
+  source "$HOME/.zprofile"
   source "$HOME/.zshrc"
   echo "OK:ALIASES:$(alias | wc -l | tr -d " ")"
   echo "OK:CD_TYPE:$(type cd | head -1)"
@@ -96,7 +98,7 @@ OUTPUT=$(TERM=xterm-256color HOME="$TESTHOME" zsh --no-rcs -c '
 echo "$OUTPUT"
 echo ""
 
-FAILS=$(echo "$OUTPUT" | grep -E '^zsh[^:]*:[0-9]+: ' | grep -v 'compinit\|compdef' || true)
+FAILS=$(echo "$OUTPUT" | grep -E '(^zsh[^:]*:[0-9]+: |\.(zshrc|zprofile):[0-9]+: )' | grep -v 'compinit\|compdef' || true)
 MISSING=$(echo "$OUTPUT" | grep ':MISSING' || true)
 
 if [[ -n "$FAILS" ]]; then
@@ -108,4 +110,4 @@ fi
 [[ -n "$MISSING" ]] && echo "WARN — some tools missing (non-fatal): $MISSING"
 
 PRETTY_NAME=$(grep -m1 '^PRETTY_NAME' /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '"' || echo "Linux")
-echo "PASS: zshrc sourced cleanly on Linux (${ARCH} / ${PRETTY_NAME})"
+echo "PASS: zsh configuration sourced cleanly on Linux (${ARCH} / ${PRETTY_NAME})"

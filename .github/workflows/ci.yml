@@ -9,7 +9,7 @@ on:
 jobs:
   # ── Linux (containerised, matrix) ───────────────────────────────────────
   test-linux:
-    name: zshrc — ${{ matrix.distro }}
+    name: zsh configuration — ${{ matrix.distro }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -21,16 +21,24 @@ jobs:
       image: ${{ matrix.distro }}
     steps:
       - uses: actions/checkout@v4
-      - name: Test zshrc
+      - name: Test zsh configuration
         run: bash scripts/test-zshrc.sh
 
+
+  test-setup-platform:
+    name: setup platform detection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test platform detection
+        run: bash scripts/test-setup-platform.sh
   # ── macOS ────────────────────────────────────────────────────────────────
   test-macos:
-    name: zshrc — macos-latest
+    name: zsh configuration — macos-latest
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Test zshrc
+      - name: Test zsh configuration
         run: bash scripts/test-zshrc-mac.sh
 
   # ── Shellcheck (bash scripts only — install.zsh is zsh, excluded) ────────
@@ -41,4 +49,4 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run shellcheck
         run: |
-          shellcheck setup.sh scripts/test-zshrc.sh scripts/test-zshrc-mac.sh test-linux.sh
+          shellcheck setup.sh scripts/test-setup-platform.sh scripts/test-zshrc.sh scripts/test-zshrc-mac.sh test-linux.sh

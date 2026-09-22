@@ -15,14 +15,58 @@ warn() { printf "%bwarn%b %s\n"  "$YLW" "$NC" "$1"; }
 die()  { printf "%berror%b %s\n" "$RED" "$NC" "$1"; exit 1; }
 
 # ── Platform ──────────────────────────────────────────────────────────────
-case "$OSTYPE" in
-  darwin*) OS=mac ;;
-  linux*)  OS=linux ;;
-  *) die "Unsupported OS: $OSTYPE" ;;
-esac
+is_wsl() {
+  local version_file="${1:-/proc/version}"
+  [[ -r "$version_file" ]] && grep -qi 'microsoft' "$version_file" 2>/dev/null
+}
+
+detect_platform() {
+  local version_file="${1:-/proc/version}"
+
+  case "$OSTYPE" in
+    darwin*) OS=mac ;;
+    linux*)  OS=linux ;;
+    *) die "Unsupported OS: $OSTYPE" ;;
+  esac
+
+  PLATFORM="$OS"
+  if [[ "$OS" == linux ]] && is_wsl "$version_file"; then
+    PLATFORM=wsl
+  fi
+}
+setup_wsl_prerequisites() {
+  command -v apt-get >/dev/null || \
+    die "WSL setup requires an Ubuntu or Debian distribution with apt-get"
+  command -v sudo >/dev/null || \
+    die "WSL setup requires a sudo-capable user"
+
+  step "WSL prerequisites"
+  if ! sudo -v; then
+    die "WSL setup requires an interactive sudo-capable user"
+  fi
+  sudo apt-get update
+  sudo env DEBIAN_FRONTEND=noninteractive \
+    apt-get install --yes --no-install-recommends \
+      build-essential procps curl file git
+}
+
+detect_platform /proc/version
+
+if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+  return 0
+fi
 
 DOTFILES="${DOTFILES:-$HOME/dotfiles}"
 REPO="https://github.com/fulstaph/dotfiles"
+
+if [[ "$PLATFORM" == wsl && "$DOTFILES" == /mnt/* ]]; then
+  warn "WSL performs best from its Linux filesystem; prefer ~/dotfiles over $DOTFILES"
+fi
+
+
+if [[ "$PLATFORM" == wsl ]]; then
+  setup_wsl_prerequisites
+fi
 
 # ── 1. Clone or update dotfiles ───────────────────────────────────────────
 step "Dotfiles ($DOTFILES)"
@@ -51,8 +95,12 @@ if BREW_BIN=$(_find_brew); then
   echo "  found at $BREW_BIN"
 else
   echo "  not found — installing..."
-  NONINTERACTIVE=1 bash -c \
-    "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  if [[ "$PLATFORM" == wsl ]]; then
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  else
+    NONINTERACTIVE=1 bash -c \
+      "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  fi
   BREW_BIN=$(_find_brew) || die "Homebrew install succeeded but brew not found"
 fi
 

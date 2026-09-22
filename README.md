@@ -16,6 +16,21 @@ Or if already cloned:
 bash ~/dotfiles/setup.sh
 ```
 
+### Windows (WSL 2)
+
+Install a WSL 2 distribution once from an elevated PowerShell:
+
+```powershell
+wsl --install -d Ubuntu
+```
+
+Open Ubuntu, create its non-root sudo user, then run the same installer from
+the WSL terminal. `setup.sh` detects WSL, installs Homebrew's Ubuntu/Debian
+prerequisites before cloning, and leaves the initial Homebrew install
+interactive for its sudo confirmation. Keep the repository in the Linux
+filesystem (`~/dotfiles`, the default), not under `/mnt/c`. WSL 1 is not a
+supported target.
+
 ## Contents
 
 | Directory | Tool | Symlinked to |
@@ -69,9 +84,10 @@ Instead, it includes `~/.gitconfig.local`:
 
 | Job | What it tests |
 |---|---|
-| `zshrc — ubuntu:24.04` | Sources cleanly, all tools resolve |
-| `zshrc — ubuntu:22.04` | Same on older LTS |
-| `zshrc — macos-latest` | Sources cleanly via Homebrew |
+| `zsh configuration — ubuntu:24.04` | Sources `.zprofile` and `.zshrc`, all tools resolve |
+| `zsh configuration — ubuntu:22.04` | Same on older LTS |
+| `zsh configuration — macos-latest` | Sources `.zprofile` and `.zshrc` via Homebrew |
+| `setup platform detection` | Selects macOS, Linux, and WSL paths |
 | `shellcheck` | Bash scripts are clean |
 
 ## Local Linux test (macOS dev)

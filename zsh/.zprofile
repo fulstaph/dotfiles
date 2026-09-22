@@ -1,14 +1,10 @@
-# The following lines were added by Docker Desktop to add commands to your PATH.
-export PATH="$PATH:/Users/georgy_bokovikov/.docker/bin"
-# End of Docker Desktop section.
+# macOS-only login paths. Cross-platform Homebrew setup lives in .zshrc.
+if [[ "$OSTYPE" == darwin* ]]; then
+  if [[ -x /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  fi
 
-eval "$(/opt/homebrew/bin/brew shellenv)"
-
-
-# Added by Toolbox App
-export PATH="$PATH:/Users/georgy_bokovikov/Library/Application Support/JetBrains/Toolbox/scripts"
-
-
-
-# Added by Antigravity CLI installer
-export PATH="/Users/georgy_bokovikov/.local/bin:$PATH"
+  export PATH="$PATH:$HOME/.docker/bin"
+  export PATH="$PATH:$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
+  export PATH="$HOME/.local/bin:$PATH"
+fi
