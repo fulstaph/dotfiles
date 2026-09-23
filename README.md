@@ -41,7 +41,7 @@ supported target.
 | `zsh/` | Zsh | `~/.zshrc`, `~/.zshenv`, `~/.zprofile` |
 | `starship/` | Starship prompt | `~/.config/starship.toml` |
 | `ghostty/` | Ghostty terminal | `~/.config/ghostty/config.ghostty` |
-| `zellij/` | Zellij multiplexer | `~/.config/zellij/` |
+| [`zellij/`](zellij/README.md) | Zellij multiplexer ([tmux keybinds](zellij/README.md)) | `~/.config/zellij/` |
 | `nvim/` | Neovim (LazyVim) | `~/.config/nvim/` |
 | `git/` | Git config | `~/.gitconfig` |
 | `zed/` | Zed editor | `~/.config/zed/settings.json` |
