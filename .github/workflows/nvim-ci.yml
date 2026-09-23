@@ -46,11 +46,15 @@ jobs:
           done < <(find . -type f -name '*.lua' -not -path './.git/*' -print0)
 
       - name: Check Lua formatting
-        uses: JohnnyMorganz/stylua-action@7b4006562fec80e637cdc03897f45fe48e38b7de # v2
-        with:
-          version: v0.20.0
-          token: ${{ github.token }}
-          args: --check .
+        run: |
+          cd nvim
+          curl --fail --silent --show-error --location \
+            --output stylua.zip \
+            "https://github.com/JohnnyMorganz/stylua/releases/download/v0.20.0/stylua-linux-x86_64.zip"
+          echo "28eddb9257bf85b20b1c337e536b7a3d16ba308863f067d447c1f4d24c6dec64  stylua.zip" | sha256sum --check --status
+          unzip -q stylua.zip
+          chmod +x stylua
+          ./stylua --check .
 
   neovim-smoke-test:
     runs-on: ubuntu-24.04
