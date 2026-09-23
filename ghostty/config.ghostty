@@ -113,3 +113,11 @@ split-inherit-working-directory = true
 #   Cmd+Shift+,      reload config
 #
 # This keeps the keyboard hierarchy predictable.
+
+
+# ------------------------------------------------------------
+# STARTUP COMMAND
+# ------------------------------------------------------------
+#
+# Launch Zellij automatically when Ghostty opens.
+command = /opt/homebrew/bin/zellij

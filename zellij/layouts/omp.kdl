@@ -34,7 +34,39 @@ layout {
         }
     }
 
-    tab {
-        pane
+    tab name="dev" focus=true {
+        pane split_direction="vertical" {
+            pane name="Neovim" size="60%" focus=true command="nvim" {
+                close_on_exit false
+            }
+            pane name="Oh My Pi" size="40%" command="omp" {
+                close_on_exit false
+            }
+        }
+    }
+
+    tab name="terminal" {
+        pane name="terminal"
+    }
+
+    swap_tiled_layout name="side-by-side" min_panes=2 max_panes=2 {
+        tab {
+            pane split_direction="vertical" {
+                pane size="60%"
+                pane size="40%"
+            }
+        }
+    }
+
+    swap_tiled_layout name="with-terminal" min_panes=3 {
+        tab {
+            pane split_direction="vertical" {
+                pane size="60%"
+                pane size="40%" split_direction="horizontal" {
+                    pane size="70%"
+                    pane size="30%"
+                }
+            }
+        }
     }
 }
