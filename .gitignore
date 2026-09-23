@@ -13,5 +13,5 @@
 # macOS
 .DS_Store
 
-# Backup files created by install.zsh
+# Backup files created by scripts/install.zsh
 *.bak.*

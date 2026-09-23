@@ -1,0 +1,93 @@
+name: Neovim CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "nvim/**"
+      - ".github/workflows/nvim-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "nvim/**"
+      - ".github/workflows/nvim-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: nvim
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Validate JSON configuration
+        run: |
+          python3 -m json.tool lazyvim.json >/dev/null
+          python3 -m json.tool .neoconf.json >/dev/null
+          python3 -m json.tool .markdownlint.json >/dev/null
+
+      - name: Install Lua parser
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes lua5.4
+
+      - name: Check Lua syntax
+        shell: bash
+        run: |
+          while IFS= read -r -d '' file; do
+            luac5.4 -p "$file"
+          done < <(find . -type f -name '*.lua' -not -path './.git/*' -print0)
+
+      - name: Check Lua formatting
+        uses: JohnnyMorganz/stylua-action@7b4006562fec80e637cdc03897f45fe48e38b7de # v2
+        with:
+          version: v0.20.0
+          token: ${{ github.token }}
+          args: --check nvim
+
+  neovim-smoke-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CI: "true"
+      NEOVIM_VERSION: v0.12.5
+      NEOVIM_SHA256: bce0f56eda1f1b1db6eee8f4133d7a38813ea07933837dd1777411ca384c6875
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install pinned Neovim
+        run: |
+          archive="$RUNNER_TEMP/nvim-linux-x86_64.tar.gz"
+          curl --fail --silent --show-error --location \
+            --output "$archive" \
+            "https://github.com/neovim/neovim/releases/download/$NEOVIM_VERSION/nvim-linux-x86_64.tar.gz"
+          echo "$NEOVIM_SHA256  $archive" | sha256sum --check --status
+          tar -xzf "$archive" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/nvim-linux-x86_64/bin/nvim" --version | head -n 1
+
+      - name: Cache Lazy.nvim plugins
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: ${{ runner.temp }}/nvim-data
+          key: nvim-${{ runner.os }}-${{ hashFiles('nvim/lazy-lock.json') }}
+
+      - name: Sync and boot configuration
+        shell: bash
+        run: |
+          ci_config="$(mktemp -d)"
+          cp -R "$GITHUB_WORKSPACE/nvim" "$ci_config/nvim"
+          export XDG_CONFIG_HOME="$ci_config"
+          export XDG_DATA_HOME="$RUNNER_TEMP/nvim-data"
+          timeout --signal=TERM --kill-after=30s 10m \
+            nvim --headless "+Lazy! sync" +qa
+          timeout --signal=TERM --kill-after=30s 2m \
+            nvim --headless +qa

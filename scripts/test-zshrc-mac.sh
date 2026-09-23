@@ -10,7 +10,7 @@ DOTFILES="$(cd "$(dirname "$0")/.." && pwd)"
 echo "==> Installing tools via Homebrew..."
 brew install --quiet \
   eza zoxide starship fzf bat fd \
-  zsh-autosuggestions zsh-syntax-highlighting 2>/dev/null || true
+  zsh-autosuggestions zsh-syntax-highlighting
 
 echo ""
 echo "=== tool versions ==="
@@ -27,27 +27,29 @@ trap 'rm -rf "$TESTHOME"' EXIT
 
 cp "$DOTFILES/zsh/.zshrc" "$TESTHOME/.zshrc"
 cp "$DOTFILES/zsh/.zprofile" "$TESTHOME/.zprofile"
+cp "$DOTFILES/zsh/.zshenv" "$TESTHOME/.zshenv"
 mkdir -p "$TESTHOME/.config"
 cp "$DOTFILES/starship/starship.toml" "$TESTHOME/.config/starship.toml"
 
 echo "=== sourcing zsh configuration ==="
 OUTPUT=$(TERM=xterm-256color HOME="$TESTHOME" zsh --no-rcs -c '
+  source "$HOME/.zshenv"
   source "$HOME/.zprofile"
   source "$HOME/.zshrc"
   echo "OK:ALIASES:$(alias | wc -l | tr -d " ")"
   echo "OK:CD_TYPE:$(type cd | head -1)"
   echo "OK:OS_VAR:$OS"
   echo "OK:BREW:${BREW:-none}"
-  echo "OK:STARSHIP:$(starship --version | head -1)"
-  echo "OK:EZA:$(eza --version 2>/dev/null | head -1 || echo MISSING)"
-  echo "OK:ZOXIDE:$(zoxide --version 2>/dev/null || echo MISSING)"
+  echo "OK:STARSHIP:$(command -v starship >/dev/null && starship --version | head -1 || echo MISSING)"
+  echo "OK:EZA:$(command -v eza >/dev/null && eza --version | head -1 || echo MISSING)"
+  echo "OK:ZOXIDE:$(command -v zoxide >/dev/null && zoxide --version || echo MISSING)"
   echo "OK:FZF:$(fzf --version 2>/dev/null || echo MISSING)"
 ' 2>&1 | grep -v 'not interactive\|compinit\|compdef\|can.t change option\|dumb.*terminal')
 
 echo "$OUTPUT"
 echo ""
 
-FAILS=$(echo "$OUTPUT" | grep -E '(^zsh[^:]*:[0-9]+: |\.(zshrc|zprofile):[0-9]+: )' | grep -v 'compinit\|compdef' || true)
+FAILS=$(echo "$OUTPUT" | grep -E '(^zsh[^:]*:[0-9]+: |\.(zshenv|zshrc|zprofile):)' | grep -v 'compinit\|compdef' || true)
 MISSING=$(echo "$OUTPUT" | grep ':MISSING' || true)
 
 if [[ -n "$FAILS" ]]; then

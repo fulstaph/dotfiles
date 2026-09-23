@@ -322,7 +322,7 @@ bindkey -M viins '^L' autosuggest-accept
 
 # ── FZF ───────────────────────────────────────
 # fzf --zsh requires ≥0.48; older distro packages use manual sourcing
-if fzf --zsh &>/dev/null; then
+if (( $+commands[fzf] )) && fzf --zsh &>/dev/null; then
   eval "$(fzf --zsh)"
 else
   # Fallback: source shell integration files from common install locations
@@ -353,7 +353,11 @@ if command -v fd &>/dev/null; then
 fi
 
 # ── Zoxide ────────────────────────────────────
-eval "$(zoxide init zsh --cmd cd)"
+if (( $+commands[zoxide] )); then
+  eval "$(zoxide init zsh --cmd cd)"
+fi
 
 # ── Prompt (Starship) ─────────────────────────
-eval "$(starship init zsh)"
+if (( $+commands[starship] )); then
+  eval "$(starship init zsh)"
+fi

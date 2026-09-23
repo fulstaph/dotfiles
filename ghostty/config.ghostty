@@ -70,8 +70,8 @@ macos-auto-secure-input = true
 # CLIPBOARD
 # ------------------------------------------------------------
 
-# Terminal programs may write to the clipboard (OSC 52).
-clipboard-write = allow
+# Block OSC 52 clipboard writes from terminal programs.
+clipboard-write = deny
 
 # Programs must ask before reading clipboard contents.
 clipboard-read = ask

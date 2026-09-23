@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
-# install.zsh — symlink dotfiles into place
-# Usage: zsh install.zsh [--dry-run] [--packages]
+# scripts/install.zsh — symlink dotfiles into place
+# Usage: zsh scripts/install.zsh [--dry-run] [--packages]
 
 set -euo pipefail
 
@@ -15,9 +15,60 @@ for arg in "$@"; do
   esac
 done
 
-DOTFILES="$(cd "$(dirname "$0")" && pwd)"
+DOTFILES="$(cd "$(dirname "$0")/.." && pwd)"
 
 # ── Optional package bootstrap (--packages) ────────────────────────────────
+HOMEBREW_INSTALL_COMMIT="b41c8e7b3588e2899974119faf3b2a897428648d"
+HOMEBREW_INSTALL_SHA256="71d25d14c32edd7adeaf4413ba671b28474ea08e4f6662cb1a73e85ff0eba368"
+: "${BREW_CANDIDATES:=/opt/homebrew/bin/brew:/usr/local/bin/brew:/home/linuxbrew/.linuxbrew/bin/brew:$HOME/.linuxbrew/bin/brew}"
+
+_find_brew() {
+  local p
+  for p in "${(@s/:/)BREW_CANDIDATES}"; do
+    [[ -x "$p" ]] && print -r -- "$p" && return 0
+  done
+  return 1
+}
+
+verify_sha256() {
+  local expected="$1" file="$2" actual
+
+  if (( $+commands[sha256sum] )); then
+    actual=$(sha256sum "$file")
+  else
+    actual=$(shasum -a 256 "$file")
+  fi
+  [[ "${actual%% *}" == "$expected" ]]
+}
+
+install_homebrew() {
+  local installer
+
+  if (( ! $+commands[curl] )); then
+    print -u2 -- "error: curl is required to install Homebrew"
+    return 1
+  fi
+
+  installer=$(mktemp) || return 1
+  if ! curl --fail --silent --show-error --location \
+    --output "$installer" \
+    "https://raw.githubusercontent.com/Homebrew/install/$HOMEBREW_INSTALL_COMMIT/install.sh"; then
+    print -u2 -- "error: failed to download the pinned Homebrew installer"
+    rm -f "$installer"
+    return 1
+  fi
+  if ! verify_sha256 "$HOMEBREW_INSTALL_SHA256" "$installer"; then
+    print -u2 -- "error: Homebrew installer checksum mismatch"
+    rm -f "$installer"
+    return 1
+  fi
+  if ! NONINTERACTIVE=1 bash "$installer"; then
+    rm -f "$installer"
+    return 1
+  fi
+  rm -f "$installer"
+}
+
 if [[ "$INSTALL_PACKAGES" == true ]]; then
   case "$OSTYPE" in
     darwin*) OS=mac ;;
@@ -25,40 +76,33 @@ if [[ "$INSTALL_PACKAGES" == true ]]; then
     *)       OS=unknown ;;
   esac
 
-  _find_brew() {
-    for p in \
-      /opt/homebrew/bin/brew \
-      /usr/local/bin/brew \
-      /home/linuxbrew/.linuxbrew/bin/brew \
-      "$HOME/.linuxbrew/bin/brew"; do
-      [[ -x "$p" ]] && echo "$p" && return
-    done
-  }
-
-  BREW_BIN=$(_find_brew)
+  if ! BREW_BIN=$(_find_brew); then
+    BREW_BIN=""
+  fi
   if [[ -z "$BREW_BIN" ]]; then
     if [[ "$DRY" == true ]]; then
-      echo "[dry] would install Homebrew"
+      print -- "[dry] would install Homebrew"
     else
-      echo "==> Homebrew not found — installing..."
-      NONINTERACTIVE=1 bash -c \
-        "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-      BREW_BIN=$(_find_brew)
+      print -- "==> Homebrew not found — installing..."
+      install_homebrew || exit 1
+      BREW_BIN=$(_find_brew) || {
+        print -u2 -- "error: Homebrew install succeeded but brew was not found"
+        exit 1
+      }
     fi
   fi
 
   if [[ -n "$BREW_BIN" && "$DRY" != true ]]; then
-    eval "$($BREW_BIN shellenv)"
-    echo "==> Installing packages via Homebrew..."
+    eval "$("$BREW_BIN" shellenv)"
+    print -- "==> Installing packages via Homebrew..."
     brew install --quiet \
       eza zoxide starship fzf bat fd \
-      zsh-autosuggestions zsh-syntax-highlighting zsh-completions \
-      2>/dev/null || true
-    if [[ $OS == mac ]]; then
-      brew install --quiet nvm 2>/dev/null || true
+      zsh-autosuggestions zsh-syntax-highlighting zsh-completions
+    if [[ "$OS" == mac ]]; then
+      brew install --quiet nvm
     fi
   elif [[ "$DRY" == true ]]; then
-    echo "[dry] would brew install eza zoxide starship fzf bat fd ..."
+    print -- "[dry] would brew install eza zoxide starship fzf bat fd ..."
   fi
 fi
 
@@ -96,6 +140,9 @@ link "$DOTFILES/ghostty/config.ghostty" "$HOME/.config/ghostty/config.ghostty"
 echo "==> zellij"
 link "$DOTFILES/zellij/config.kdl"          "$HOME/.config/zellij/config.kdl"
 link "$DOTFILES/zellij/layouts/default.kdl" "$HOME/.config/zellij/layouts/default.kdl"
+link "$DOTFILES/zellij/plugins/zellij_forgot.wasm" "$HOME/.config/zellij/plugins/zellij_forgot.wasm"
+link "$DOTFILES/zellij/plugins/zjstatus.wasm"      "$HOME/.config/zellij/plugins/zjstatus.wasm"
+link "$DOTFILES/zellij/plugins/SHA256SUMS"         "$HOME/.config/zellij/plugins/SHA256SUMS"
 
 echo "==> nvim"
 link "$DOTFILES/nvim" "$HOME/.config/nvim"

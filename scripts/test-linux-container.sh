@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# test-linux.sh — run scripts/test-zshrc.sh inside a container (macOS dev workflow)
+# scripts/test-linux-container.sh — run test-zshrc.sh inside a container
 # Requires podman or docker.
 set -euo pipefail
 
-DOTFILES="$(cd "$(dirname "$0")" && pwd)"
+DOTFILES="$(cd "$(dirname "$0")/.." && pwd)"
 RUNTIME=""
 for r in podman docker; do
   command -v "$r" &>/dev/null && RUNTIME="$r" && break

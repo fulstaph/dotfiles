@@ -4,15 +4,18 @@ Personal shell and editor config. **Single source of truth** — no separate per
 
 ## Fresh machine setup
 
-One command — installs Homebrew if missing, installs all tools, symlinks configs, sets zsh as default shell:
+Install Git once, clone the repository, then run the reviewed local bootstrap:
+
+On macOS, finish the Command Line Tools prompt before continuing.
 
 ```sh
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/fulstaph/dotfiles/main/setup.sh)"
-```
+# macOS
+xcode-select --install
 
-Or if already cloned:
+# Ubuntu / WSL
+sudo apt-get update && sudo apt-get install --yes git curl
 
-```sh
+git clone https://github.com/fulstaph/dotfiles.git ~/dotfiles
 bash ~/dotfiles/setup.sh
 ```
 
@@ -24,10 +27,10 @@ Install a WSL 2 distribution once from an elevated PowerShell:
 wsl --install -d Ubuntu
 ```
 
-Open Ubuntu, create its non-root sudo user, then run the same installer from
-the WSL terminal. `setup.sh` detects WSL, installs Homebrew's Ubuntu/Debian
-prerequisites before cloning, and leaves the initial Homebrew install
-interactive for its sudo confirmation. Keep the repository in the Linux
+Open Ubuntu, create its non-root sudo user, clone the repository, then run
+`setup.sh` from the WSL terminal. It detects WSL, installs Homebrew's
+Ubuntu/Debian prerequisites before Homebrew, and leaves the initial Homebrew
+install interactive for its sudo confirmation. Keep the repository in the Linux
 filesystem (`~/dotfiles`, the default), not under `/mnt/c`. WSL 1 is not a
 supported target.
 
@@ -46,8 +49,8 @@ supported target.
 ## Symlinks only (existing machine)
 
 ```sh
-zsh install.zsh           # symlink all configs
-zsh install.zsh --dry-run # preview without changing anything
+zsh scripts/install.zsh           # symlink all configs
+zsh scripts/install.zsh --dry-run # preview without changing anything
 ```
 
 Existing files are backed up to `<file>.bak.<timestamp>` before symlinking.
@@ -74,7 +77,7 @@ Instead, it includes `~/.gitconfig.local`:
     email = your.work.or.personal.email@example.com
 ```
 
-`install.zsh` auto-creates a template if none exists. Your work credentials stay purely on your machine.
+`scripts/install.zsh` auto-creates a template if none exists. Your work credentials stay purely on your machine.
 
 ## Agent Configs (Oh My Pi & Pi)
 
@@ -89,11 +92,14 @@ Instead, it includes `~/.gitconfig.local`:
 | `zsh configuration — macos-latest` | Sources `.zprofile` and `.zshrc` via Homebrew |
 | `setup platform detection` | Selects macOS, Linux, and WSL paths |
 | `shellcheck` | Bash scripts are clean |
+| `nvim configuration` | JSON, Lua syntax, and Stylua formatting |
+| `nvim smoke test` | Installs the pinned Neovim release and syncs the locked plugin set |
+
 
 ## Local Linux test (macOS dev)
 
 Requires podman or docker:
 
 ```sh
-bash test-linux.sh
+bash scripts/test-linux-container.sh
 ```

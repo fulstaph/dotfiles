@@ -52,11 +52,38 @@ assert_wsl_prerequisites() {
     exit 1
   fi
 }
+assert_native_bootstrap_tools() {
+  local trace_file="$TEST_DIR/native-bootstrap-commands"
+  local expected="git curl"
+  local actual
+
+  : >"$trace_file"
+  OSTYPE=linux-gnu TRACE_FILE="$trace_file" bash -c '
+    source "$1"
+    OS=linux
+    available=""
+    has_command() { [[ " $available " == *" $1 "* ]]; }
+    install_system_packages() {
+      printf "%s\n" "$*" >>"$TRACE_FILE"
+      available+=" $*"
+    }
+    ensure_bootstrap_tools >/dev/null
+  ' _ "$DOTFILES/setup.sh"
+
+  actual=$(cat "$trace_file")
+  if [[ "$actual" != "$expected" ]]; then
+    printf 'FAIL: expected native bootstrap packages %s, got %s\n' \
+      "$expected" "$actual" >&2
+    exit 1
+  fi
+}
+
 
 assert_platform "mac:mac" "darwin24.0" "$TEST_DIR/wsl-lower"
 assert_platform "linux:linux" "linux-gnu" "$TEST_DIR/linux"
 assert_platform "linux:wsl" "linux-gnu" "$TEST_DIR/wsl-lower"
 assert_platform "linux:wsl" "linux-gnu" "$TEST_DIR/wsl-upper"
 assert_wsl_prerequisites
+assert_native_bootstrap_tools
 
 echo "PASS: WSL platform detection and prerequisites"

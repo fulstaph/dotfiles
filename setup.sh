@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 # setup.sh — bootstrap a fresh machine with dotfiles + all dependencies
 #
-# One-liner install:
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/fulstaph/dotfiles/main/setup.sh)"
-#
-# Or if already cloned:
+# Run after cloning:
 #   bash ~/dotfiles/setup.sh
 set -euo pipefail
 
@@ -13,6 +10,93 @@ GRN='\033[0;32m'; YLW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
 step() { printf "\n%b==>%b %s\n" "$GRN" "$NC" "$1"; }
 warn() { printf "%bwarn%b %s\n"  "$YLW" "$NC" "$1"; }
 die()  { printf "%berror%b %s\n" "$RED" "$NC" "$1"; exit 1; }
+
+HOMEBREW_INSTALL_COMMIT="b41c8e7b3588e2899974119faf3b2a897428648d"
+HOMEBREW_INSTALL_SHA256="71d25d14c32edd7adeaf4413ba671b28474ea08e4f6662cb1a73e85ff0eba368"
+
+has_command() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+install_system_packages() {
+  local packages=("$@")
+
+  has_command sudo || die "Installing bootstrap dependencies requires sudo"
+  sudo -v || die "Installing bootstrap dependencies requires an interactive sudo-capable user"
+
+  case "$OS" in
+    linux)
+      if has_command apt-get; then
+        sudo apt-get update
+        sudo env DEBIAN_FRONTEND=noninteractive \
+          apt-get install --yes --no-install-recommends "${packages[@]}"
+      elif has_command dnf; then
+        sudo dnf install --assumeyes "${packages[@]}"
+      elif has_command pacman; then
+        sudo pacman -Sy --noconfirm "${packages[@]}"
+      else
+        die "Install ${packages[*]} with your package manager, then rerun setup.sh"
+      fi
+      ;;
+    mac)
+      xcode-select --install >/dev/null 2>&1 || true
+      die "Install the macOS Command Line Tools, then rerun setup.sh"
+      ;;
+  esac
+}
+
+ensure_bootstrap_tools() {
+  local packages=()
+
+  has_command git || packages+=("git")
+  has_command curl || packages+=("curl")
+  ((${#packages[@]} == 0)) && return
+
+  step "Bootstrap dependencies"
+  install_system_packages "${packages[@]}"
+  for tool in "${packages[@]}"; do
+    has_command "$tool" || die "Failed to install required bootstrap tool: $tool"
+  done
+}
+
+verify_sha256() {
+  local expected="$1" file="$2" actual
+
+  if has_command sha256sum; then
+    actual=$(sha256sum "$file")
+  else
+    actual=$(shasum -a 256 "$file")
+  fi
+  [[ "${actual%% *}" == "$expected" ]]
+}
+
+install_homebrew() {
+  local installer
+
+  installer=$(mktemp) || die "Unable to create a temporary Homebrew installer"
+  if ! curl --fail --silent --show-error --location \
+    --output "$installer" \
+    "https://raw.githubusercontent.com/Homebrew/install/$HOMEBREW_INSTALL_COMMIT/install.sh"; then
+    rm -f "$installer"
+    die "Failed to download the pinned Homebrew installer"
+  fi
+  if ! verify_sha256 "$HOMEBREW_INSTALL_SHA256" "$installer"; then
+    rm -f "$installer"
+    die "Homebrew installer checksum mismatch"
+  fi
+
+  if [[ "$PLATFORM" == wsl ]]; then
+    if ! bash "$installer"; then
+      rm -f "$installer"
+      die "Homebrew installation failed"
+    fi
+  elif ! NONINTERACTIVE=1 bash "$installer"; then
+    rm -f "$installer"
+    die "Homebrew installation failed"
+  fi
+  rm -f "$installer"
+}
+
 
 # ── Platform ──────────────────────────────────────────────────────────────
 is_wsl() {
@@ -67,6 +151,8 @@ fi
 if [[ "$PLATFORM" == wsl ]]; then
   setup_wsl_prerequisites
 fi
+ensure_bootstrap_tools
+
 
 # ── 1. Clone or update dotfiles ───────────────────────────────────────────
 step "Dotfiles ($DOTFILES)"
@@ -95,16 +181,12 @@ if BREW_BIN=$(_find_brew); then
   echo "  found at $BREW_BIN"
 else
   echo "  not found — installing..."
-  if [[ "$PLATFORM" == wsl ]]; then
-    bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  else
-    NONINTERACTIVE=1 bash -c \
-      "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  fi
+  install_homebrew
   BREW_BIN=$(_find_brew) || die "Homebrew install succeeded but brew not found"
 fi
 
-eval "$($BREW_BIN shellenv)"
+eval "$("$BREW_BIN" shellenv)"
+
 
 # ── 3. Core packages ──────────────────────────────────────────────────────
 step "Packages"
@@ -137,11 +219,11 @@ if [[ $OS == mac ]]; then
   PACKAGES+=(nvm)
 fi
 
-brew install --quiet "${PACKAGES[@]}" 2>/dev/null || true
+"$BREW_BIN" install --quiet "${PACKAGES[@]}"
 
 # ── 4. Symlink dotfiles ───────────────────────────────────────────────────
 step "Symlinking dotfiles"
-zsh "$DOTFILES/install.zsh"
+zsh "$DOTFILES/scripts/install.zsh"
 
 # ── 5. Set default shell to zsh ───────────────────────────────────────────
 step "Default shell"
@@ -168,9 +250,13 @@ if [[ -d "$OMP_DIR" ]] || command -v omp &>/dev/null; then
   echo "  syncing Oh My Pi configs (fulstaph/omp-config)..."
   mkdir -p "$OMP_DIR"
   if [[ -d "$OMP_SRC/.git" ]]; then
-    git -C "$OMP_SRC" pull --ff-only 2>/dev/null || true
+    if ! git -C "$OMP_SRC" pull --ff-only; then
+      warn "failed to update Oh My Pi config; keeping the existing checkout"
+    fi
   else
-    git clone --depth=1 https://github.com/fulstaph/omp-config.git "$OMP_SRC" 2>/dev/null || true
+    if ! git clone --depth=1 https://github.com/fulstaph/omp-config.git "$OMP_SRC"; then
+      warn "failed to clone Oh My Pi config; continuing without a config sync"
+    fi
   fi
   if [[ -d "$OMP_SRC" ]]; then
     for f in config.yml models.yml plugins.json; do
@@ -191,9 +277,13 @@ if [[ -d "$PI_DIR" ]] || command -v pi &>/dev/null; then
   echo "  syncing Pi configs (fulstaph/pi-agent-config)..."
   mkdir -p "$PI_DIR"
   if [[ -d "$PI_SRC/.git" ]]; then
-    git -C "$PI_SRC" pull --ff-only 2>/dev/null || true
+    if ! git -C "$PI_SRC" pull --ff-only; then
+      warn "failed to update Pi config; keeping the existing checkout"
+    fi
   else
-    git clone --depth=1 https://github.com/fulstaph/pi-agent-config.git "$PI_SRC" 2>/dev/null || true
+    if ! git clone --depth=1 https://github.com/fulstaph/pi-agent-config.git "$PI_SRC"; then
+      warn "failed to clone Pi config; continuing without a config sync"
+    fi
   fi
   if [[ -d "$PI_SRC" ]]; then
     for item in AGENTS.md CLAUDE.md keybindings.json mcp.json settings.json agents prompts skills; do

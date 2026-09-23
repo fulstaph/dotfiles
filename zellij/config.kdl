@@ -24,7 +24,7 @@ scrollback_editor "nvim"
 copy_on_select true
 
 plugins {
-    zellij-forgot location="https://github.com/karimould/zellij-forgot/releases/download/0.4.2/zellij_forgot.wasm"
+    zellij-forgot location="file:~/.config/zellij/plugins/zellij_forgot.wasm"
 }
 
 keybinds clear-defaults=true {
