@@ -11,6 +11,7 @@ layout {
                 hide_frame_for_single_pane "true"
 
                 mode_locked   "#[bg=#26233a,fg=#6e6a86] LOCKED "
+                mode_tmux     "#[bg=#f6c177,fg=#191724,bold] TMUX "
                 mode_normal   "#[bg=#f6c177,fg=#191724,bold] NORMAL "
                 mode_pane     "#[bg=#ebbcba,fg=#191724,bold] PANE "
                 mode_tab      "#[bg=#c4a7e7,fg=#191724,bold] TAB "
