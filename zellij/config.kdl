@@ -297,4 +297,14 @@ keybinds clear-defaults=true {
     shared_except "move" "locked" "renametab" "renamepane" "entersearch" {
         bind "m" { SwitchToMode "Move"; }
     }
+
+    // ------------------------------------------------------------
+    // Direct 1-stroke pane navigation (Alt/Option + hjkl)
+    // ------------------------------------------------------------
+    shared_except "renametab" "renamepane" {
+        bind "Alt h" "Alt Left"  { MoveFocus "Left"; }
+        bind "Alt j" "Alt Down"  { MoveFocus "Down"; }
+        bind "Alt k" "Alt Up"    { MoveFocus "Up"; }
+        bind "Alt l" "Alt Right" { MoveFocus "Right"; }
+    }
 }
