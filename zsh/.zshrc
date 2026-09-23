@@ -154,6 +154,16 @@ path=($PNPM_HOME $path)
 
 # ── NVM (lazy-load) ───────────────────────────
 export NVM_DIR="$HOME/.nvm"
+if [[ -d "$NVM_DIR/versions/node" ]]; then
+  _nvm_default_version="$(<"$NVM_DIR/alias/default" 2>/dev/null)"
+  if [[ -z "$_nvm_default_version" || ! -d "$NVM_DIR/versions/node/$_nvm_default_version/bin" ]]; then
+    _nvm_default_version="$(command ls -1 "$NVM_DIR/versions/node" 2>/dev/null | tail -n 1)"
+  fi
+  if [[ -n "$_nvm_default_version" && -d "$NVM_DIR/versions/node/$_nvm_default_version/bin" ]]; then
+    path=("$NVM_DIR/versions/node/$_nvm_default_version/bin" $path)
+  fi
+  unset _nvm_default_version
+fi
 nvm() {
   unfunction nvm
   local nvm_sh
