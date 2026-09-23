@@ -50,7 +50,7 @@ jobs:
         with:
           version: v0.20.0
           token: ${{ github.token }}
-          args: --check nvim
+          args: --check .
 
   neovim-smoke-test:
     runs-on: ubuntu-24.04
