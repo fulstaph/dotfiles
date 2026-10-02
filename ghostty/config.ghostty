@@ -120,4 +120,4 @@ split-inherit-working-directory = true
 # ------------------------------------------------------------
 #
 # Launch Zellij automatically when Ghostty opens.
-command = /opt/homebrew/bin/zellij
+command = zellij

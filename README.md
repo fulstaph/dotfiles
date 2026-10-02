@@ -46,6 +46,42 @@ supported target.
 | `git/` | Git config | `~/.gitconfig` |
 | `zed/` | Zed editor | `~/.config/zed/settings.json` |
 | `gh/` | GitHub CLI | `~/.config/gh/config.yml` |
+
+## Python notebooks in Neovim
+
+The Neovim config opens `.ipynb` files as Jupytext Python percent-cell buffers.
+Save with `:write` to update the notebook. The full `setup.sh` bootstrap installs
+Jupytext and creates a Neovim Python environment with Molten's required Python
+packages plus a `Python (Neovim)` Jupyter kernel.
+
+For a symlinks-only install, ensure `uv` is available (for example, `brew install uv`),
+then create that environment manually:
+
+```sh
+uv tool install --python 3.12 jupytext
+uv venv --python 3.12 ~/.local/share/nvim/venv
+uv pip install --python ~/.local/share/nvim/venv/bin/python3 \
+  pynvim jupyter_client ipykernel
+~/.local/share/nvim/venv/bin/python3 -m ipykernel install --user \
+  --name neovim-python --display-name "Python (Neovim)"
+```
+
+Open or create a notebook with `nvim file.ipynb` or `:NewPythonNotebook file`.
+Use `<leader>ji` to select a kernel, `<leader>jr` to run the code cell under
+the cursor, and `<leader>jc` to run it and advance. `<leader>j[` and
+`<leader>j]` move between cells; `<leader>jv` runs a visual selection.
+Molten outputs are not written into the notebook automatically; use
+`<leader>jE` to export them. Image rendering is currently disabled.
+
+## Taskfiles in Neovim
+
+[taskfile.nvim](https://github.com/fulstaph/taskfile.nvim) provides task picking,
+terminal execution, and inline task markers. Install the [Task CLI](https://taskfile.dev/installation/)
+and use `<leader>Tr` to pick a task, `<leader>Ta` to include undocumented tasks,
+`<leader>Td` for a dry run, `<leader>Tl` to rerun the last task, `<leader>Te` to
+edit the Taskfile, and `<leader>Tc` to run the task under the cursor. Save the
+Taskfile before running from the cursor.
+
 ## Symlinks only (existing machine)
 
 ```sh
@@ -78,6 +114,16 @@ Instead, it includes `~/.gitconfig.local`:
 ```
 
 `scripts/install.zsh` auto-creates a template if none exists. Your work credentials stay purely on your machine.
+
+## Agent Lens beta
+
+Neovim pins `fulstaph/agent-lens.nvim` to `v0.1.0-beta.1` with read tracking,
+inline activity, Follow Agent, and animated live previews enabled. `setup.sh`
+installs the matching OMP bridge when `omp` is available, adding Bun 1.4.2
+under `~/.local` if its package installer needs it. Restart Neovim and
+OMP after installation. Use `<leader>al` for the timeline, `<leader>af` to
+toggle following, `<leader>ar` to resume, `<leader>as` for status, and
+`<leader>ap` to preview a hunk.
 
 ## Agent Configs (Oh My Pi & Pi)
 

@@ -25,6 +25,7 @@ copy_on_select true
 
 plugins {
     zellij-forgot location="file:~/.config/zellij/plugins/zellij_forgot.wasm"
+    zellij-command-palette location="file:~/.config/zellij/plugins/zellij_command_palette.wasm"
 }
 
 keybinds clear-defaults=true {
@@ -115,6 +116,15 @@ keybinds clear-defaults=true {
         bind "?" {
             LaunchOrFocusPlugin "zellij-forgot" {
                 floating true
+            }
+            SwitchToMode "Locked"
+        }
+
+        // Local, least-privilege command palette
+        bind "g" {
+            LaunchOrFocusPlugin "zellij-command-palette" {
+                floating true
+                move_to_focused_tab true
             }
             SwitchToMode "Locked"
         }

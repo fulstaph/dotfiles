@@ -108,11 +108,11 @@ fi
 
 link() {
   local src="$1" dst="$2"
-  mkdir -p "$(dirname "$dst")"
   if [[ "$DRY" == true ]]; then
     echo "[dry] $dst -> $src"
     return
   fi
+  mkdir -p "$(dirname "$dst")"
   if [[ -L "$dst" && "$(readlink "$dst")" == "$src" ]]; then
     echo "  ok  $dst"
     return
@@ -122,7 +122,7 @@ link() {
     echo " bak  $dst -> $bak"
     mv "$dst" "$bak"
   fi
-  ln -sf "$src" "$dst"
+  ln -sfn "$src" "$dst"
   echo "link  $dst"
 }
 
@@ -142,8 +142,9 @@ link "$DOTFILES/zellij/config.kdl"          "$HOME/.config/zellij/config.kdl"
 link "$DOTFILES/zellij/layouts/default.kdl" "$HOME/.config/zellij/layouts/default.kdl"
 link "$DOTFILES/zellij/layouts/omp.kdl"     "$HOME/.config/zellij/layouts/omp.kdl"
 link "$DOTFILES/zellij/README.md"           "$HOME/.config/zellij/README.md"
-link "$DOTFILES/zellij/plugins/zellij_forgot.wasm" "$HOME/.config/zellij/plugins/zellij_forgot.wasm"
-link "$DOTFILES/zellij/plugins/zjstatus.wasm"      "$HOME/.config/zellij/plugins/zjstatus.wasm"
+link "$DOTFILES/zellij/plugins/zellij_forgot.wasm"           "$HOME/.config/zellij/plugins/zellij_forgot.wasm"
+link "$DOTFILES/zellij/plugins/zellij_command_palette.wasm" "$HOME/.config/zellij/plugins/zellij_command_palette.wasm"
+link "$DOTFILES/zellij/plugins/zjstatus.wasm"                "$HOME/.config/zellij/plugins/zjstatus.wasm"
 link "$DOTFILES/zellij/plugins/SHA256SUMS"         "$HOME/.config/zellij/plugins/SHA256SUMS"
 
 echo "==> nvim"

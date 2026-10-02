@@ -60,7 +60,6 @@ Prefix: **`Ctrl-a`**
 | `q` / `Esc` / `Ctrl-c` | `ScrollToBottom` + Lock | Exit scroll mode back to application |
 
 ### Session & Utilities
-
 | Shortcut | Action | Description |
 |---|---|---|
 | `Ctrl-a` `s` | `zellij:session-manager` | Interactive session manager |
@@ -68,7 +67,20 @@ Prefix: **`Ctrl-a`**
 | `Ctrl-a` `a` | Literal `Ctrl-a` | Send `\x01` to Neovim (`<C-a>`) or shell (`BOL`) |
 | `Ctrl-a` `f` | `zellij:strider` | Floating file explorer |
 | `Ctrl-a` `?` | `zellij-forgot` | Searchable keybinding cheat sheet |
+| `Ctrl-a` `g` | Local command palette | Fuzzy-search built-in Zellij actions |
 | `Ctrl-a` `Esc` / `q` | `SwitchToMode "Locked"` | Cancel prefix |
+
+The local Rust/WASM palette lives in `coding/zellij-command-palette`. It requests only `ChangeApplicationState` for fixed Zellij actions (new tabs/panes and tab navigation); it does not read or write files, invoke custom commands, access the network, or read the session environment. `New Pane` opens Zellij's default shell through its built-in API.
+
+Build the binary plugin and refresh its tracked artifact after source changes:
+
+```sh
+cargo build --manifest-path coding/zellij-command-palette/Cargo.toml --release --target wasm32-wasip1 --bin zellij-command-palette
+cp coding/zellij-command-palette/target/wasm32-wasip1/release/zellij-command-palette.wasm zellij/plugins/zellij_command_palette.wasm
+shasum -a 256 zellij/plugins/zellij_command_palette.wasm
+```
+
+Update the matching `zellij_command_palette.wasm` line in `zellij/plugins/SHA256SUMS` with the printed digest.
 
 ### Advanced Sub-Modes
 

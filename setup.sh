@@ -213,6 +213,7 @@ PACKAGES=(
   git
   gh
   curl
+  uv
 )
 
 if [[ $OS == mac ]]; then
@@ -220,6 +221,13 @@ if [[ $OS == mac ]]; then
 fi
 
 "$BREW_BIN" install --quiet "${PACKAGES[@]}"
+step "Neovim Python notebook support"
+uv tool install --python 3.12 jupytext
+NVIM_PYTHON="$HOME/.local/share/nvim/venv"
+uv venv --python 3.12 --allow-existing "$NVIM_PYTHON"
+uv pip install --python "$NVIM_PYTHON/bin/python3" pynvim jupyter_client ipykernel
+"$NVIM_PYTHON/bin/python3" -m ipykernel install --user \
+  --name neovim-python --display-name "Python (Neovim)"
 
 # ── 4. Symlink dotfiles ───────────────────────────────────────────────────
 step "Symlinking dotfiles"
@@ -268,6 +276,22 @@ if [[ -d "$OMP_DIR" ]] || command -v omp &>/dev/null; then
   fi
 else
   echo "  omp not detected — skipping (clone fulstaph/omp-config if installing later)"
+fi
+
+# Match the Agent Lens beta pinned in nvim/lua/plugins/agent-lens.lua.
+if command -v omp &>/dev/null; then
+  echo "  installing Agent Lens beta bridge..."
+  # OMP's standalone binary delegates package installation to Bun.
+  if ! command -v bun &>/dev/null && [[ ! -x "$HOME/.local/bin/bun" ]]; then
+    if command -v npm &>/dev/null; then
+      npm install --global --prefix "$HOME/.local" bun@1.4.2 || warn "failed to install Bun"
+    else
+      warn "OMP package installation requires Bun; install Bun and rerun setup.sh"
+    fi
+  fi
+  if ! PATH="$HOME/.local/bin:$PATH" omp install 'github:fulstaph/agent-lens.nvim#v0.1.0-beta.1' </dev/null; then
+    warn "failed to install Agent Lens bridge; rerun the pinned omp install command"
+  fi
 fi
 
 # Pi (~/.pi/agent)
